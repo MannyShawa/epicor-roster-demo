@@ -583,7 +583,7 @@
   </div>
 
   <script>
-    const PHOTO_BASE = "assets/employeees";
+    const PHOTO_BASE = "assets/Employees";
 
     const demoResources = [
       { id: "EMP001", name: "John Smith", group: "Assembly", photo: `${PHOTO_BASE}/EMP001.png` },
@@ -804,7 +804,7 @@
               if (!payload) return;
 
               const targetCellKey = makeCellKey(r.id, d.key, s.key);
-              handleDrop(payload, targetCellKey, r.id, d.key);
+              handleDrop(payload, targetCellKey, r.id, d.key, s.key);
             });
 
             // IMPORTANT: show leave/holiday only on DAY row to avoid duplication look
@@ -938,13 +938,19 @@
         card.appendChild(del);
 
         const handle = document.createElement("div");
-        handle.className = "resize-handle";
-        handle.title = "Drag to stretch leave";
-        handle.addEventListener("mousedown", (ev) => {
-          ev.stopPropagation();
-          startResize(range.id, range.resourceId);
-        });
-        card.appendChild(handle);
+handle.className = "resize-handle";
+handle.title = "Drag to stretch leave";
+handle.draggable = false;
+
+handle.addEventListener("dragstart", (e) => e.preventDefault());
+
+handle.addEventListener("pointerdown", (ev) => {
+  ev.preventDefault();
+  ev.stopPropagation();
+  startResizePointer(ev, range.id, range.resourceId);
+});
+
+card.appendChild(handle);
       }
 
       card.appendChild(pill);
@@ -957,28 +963,27 @@
       renderBoard();
     }
 
-    function handleDrop(payload, targetCellKey, targetResourceId, targetDayKey) {
+    function handleDrop(payload, targetCellKey, targetResourceId, targetDayKey, targetShiftKey) {
       if (!payload) return;
 
       // Move range (leave or holiday)
-      if (payload.type === "range") {
-        if (payload.resourceId !== targetResourceId) return;
+if (payload.type === "range") {
+  if (payload.resourceId !== targetResourceId) return;
 
-        const r = dayRanges.find(x => x.id === payload.rangeId);
-        if (!r) return;
+  const r = dayRanges.find(x => x.id === payload.rangeId);
+  if (!r) return;
 
-        // MOVE: keep span, set start to target day
-        const span = daySpan(r.startDayKey, r.endDayKey);
-        r.startDayKey = targetDayKey;
-        r.endDayKey = addDaysIso(targetDayKey, span);
+  // Ranges apply to the whole day, and we render them on the Day row only.
+  // If user drops on Night, still move to that day (so it stays visible).
+  const span = daySpan(r.startDayKey, r.endDayKey);
 
-        // clamp
-        r.startDayKey = clampToWeek(r.startDayKey);
-        r.endDayKey = clampToWeek(r.endDayKey);
+  const start = clampToWeek(targetDayKey);
+  r.startDayKey = start;
+  r.endDayKey = clampToWeek(addDaysIso(start, span));
 
-        renderBoard();
-        return;
-      }
+  renderBoard();
+  return;
+}
 
       // Jobs
       if (payload.type !== "job") return;
@@ -1013,62 +1018,62 @@
       }
     }
 
-    // Mouse resize leave by dragging handle, snap to day columns
-    function startResize(rangeId, resourceId) {
-      const r = dayRanges.find(x => x.id === rangeId);
-      if (!r) return;
+    // Pointer resize leave by dragging handle, snap to day columns
+function startResizePointer(ev, rangeId, resourceId) {
+  const r = dayRanges.find(x => x.id === rangeId);
+  if (!r) return;
 
-      resizeState = {
-        rangeId,
-        resourceId,
-        startDayKey: r.startDayKey,
-        endDayKey: r.endDayKey
-      };
+  resizeState = { rangeId, resourceId };
 
-      document.addEventListener("mousemove", onResizeMove);
-      document.addEventListener("mouseup", onResizeEnd, { once: true });
-    }
+  // Capture pointer so we keep receiving events even if cursor leaves the handle
+  try { ev.target.setPointerCapture(ev.pointerId); } catch {}
 
-    function onResizeMove(ev) {
-      if (!resizeState) return;
+  document.body.style.userSelect = "none";
 
-      // Find element under mouse that has a dayKey for this resource Day shift dropzone
-      const el = document.elementFromPoint(ev.clientX, ev.clientY);
-      if (!el) return;
+  window.addEventListener("pointermove", onResizePointerMove);
+  window.addEventListener("pointerup", onResizePointerEnd, { once: true });
+}
 
-      const dz = el.closest ? el.closest(".dropzone") : null;
-      if (!dz) return;
+function onResizePointerMove(ev) {
+  if (!resizeState) return;
 
-      const resourceId = dz.dataset.resourceId;
-      const shiftKey = dz.dataset.shiftKey;
-      const dayKey = dz.dataset.dayKey;
+  const el = document.elementFromPoint(ev.clientX, ev.clientY);
+  if (!el) return;
 
-      // resize only based on Day shift row so it is consistent
-      if (resourceId !== resizeState.resourceId) return;
-      if (shiftKey !== "day") return;
+  const dz = el.closest ? el.closest(".dropzone") : null;
+  if (!dz) return;
 
-      const r = dayRanges.find(x => x.id === resizeState.rangeId);
-      if (!r) return;
+  const resourceId = dz.dataset.resourceId;
+  const shiftKey = dz.dataset.shiftKey;
+  const dayKey = dz.dataset.dayKey;
 
-      const target = clampToWeek(dayKey);
+  // Resize only based on Day shift row so it is consistent with range rendering
+  if (resourceId !== resizeState.resourceId) return;
+  if (shiftKey !== "day") return;
 
-      // set end to target, allow shrinking
-      if (target >= r.startDayKey) {
-        r.endDayKey = target;
-      } else {
-        // if dragged left of start, swap
-        r.endDayKey = r.startDayKey;
-        r.startDayKey = target;
-      }
+  const r = dayRanges.find(x => x.id === resizeState.rangeId);
+  if (!r) return;
 
-      renderBoard();
-    }
+  const target = clampToWeek(dayKey);
 
-    function onResizeEnd() {
-      document.removeEventListener("mousemove", onResizeMove);
-      resizeState = null;
-      renderBoard();
-    }
+  // Set end to target, allow shrinking
+  if (target >= r.startDayKey) {
+    r.endDayKey = target;
+  } else {
+    // If dragged left of start, swap
+    r.endDayKey = r.startDayKey;
+    r.startDayKey = target;
+  }
+
+  renderBoard();
+}
+
+function onResizePointerEnd() {
+  window.removeEventListener("pointermove", onResizePointerMove);
+  document.body.style.userSelect = "";
+  resizeState = null;
+  renderBoard();
+}
 
     // Add modal
     function openAddForm(resource, day) {
@@ -1094,38 +1099,40 @@
     }
 
     function submitAdd() {
-      if (!addCtx) return;
+  if (!addCtx) return;
 
-      const type = document.getElementById("addType").value;
-      const hType = document.getElementById("holidayType").value;
-      const labelRaw = document.getElementById("addLabel").value.trim();
-      const notes = document.getElementById("addNotes").value.trim();
+  const typeEl = document.getElementById("addType");
+  const type = (typeEl && typeEl.value) ? typeEl.value : "holiday";
 
-      // Holiday label required, Leave label optional
-      if (type === "holiday" && !labelRaw) {
-        alert("Holiday label is required.");
-        return;
-      }
+  const hType = document.getElementById("holidayType")?.value || "public";
+  const labelRaw = (document.getElementById("addLabel")?.value || "").trim();
+  const notes = (document.getElementById("addNotes")?.value || "").trim();
 
-      const finalLabel = labelRaw || (type === "leave" ? "Leave" : "Holiday");
+  // Holiday label required, Leave label optional
+  if (type === "holiday" && !labelRaw) {
+    alert("Holiday label is required.");
+    return;
+  }
 
-      dayRanges.push({
-        id: `R-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-        kind: type,
-        resourceId: addCtx.resource.id,
-        startDayKey: addCtx.day.key,
-        endDayKey: addCtx.day.key,
-        label: finalLabel,
-        holidayType: (type === "holiday" ? hType : null),
-        notes: notes || ""
-      });
+  const finalLabel = labelRaw || (type === "leave" ? "Leave" : "Holiday");
 
-      closeOverlay("addOverlay");
-      addCtx = null;
-      renderBoard();
-    }
+  dayRanges.push({
+    id: `R-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+    kind: type,
+    resourceId: addCtx.resource.id,
+    startDayKey: addCtx.day.key,
+    endDayKey: addCtx.day.key,
+    label: finalLabel,
+    holidayType: (type === "holiday" ? hType : null),
+    notes: notes
+  });
 
-    // Details modal
+  closeOverlay("addOverlay");
+  addCtx = null;
+  renderBoard();
+}
+
+// Details modal
     function openDetails(item, ctx) {
       const resource = ctx?.resource;
       const day = ctx?.day;
