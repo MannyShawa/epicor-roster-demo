@@ -14,8 +14,8 @@
       --aqua:#90d2b5;
       --light-gray:#eef2f5;
 
-      --job:#90d2b5;
-      --holiday:#ff8873;
+      --job:#90d2b5;       /* requested */
+      --holiday:#ff8873;   /* requested */
 
       --grid:#cfd8de;
       --bg:var(--light-gray);
@@ -233,6 +233,7 @@
       padding:10px 12px 14px;
       overflow:auto;
       background:#fff;
+      position:relative;
     }
 
     .excel{
@@ -409,16 +410,9 @@
       color:#000;
     }
 
-    /* Color rules requested */
-    .mini.job-chip{
-      background:rgba(144,210,181,0.55);
-    }
-    .mini.holiday{
-      background:rgba(255,136,115,0.60);
-    }
-    .mini.leave{
-      background:rgba(2,80,100,0.18);
-    }
+    .mini.job-chip{ background:rgba(144,210,181,0.55); }
+    .mini.holiday{ background:rgba(255,136,115,0.60); }
+    .mini.leave{ background:rgba(2,80,100,0.18); }
 
     .icon-btn{
       border:1px solid rgba(0,43,58,0.20);
@@ -455,6 +449,22 @@
       color:#000;
     }
 
+    /* Mini date bar */
+    .datebar{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .date-range{
+      font-size:12px;
+      font-weight:900;
+      opacity:0.85;
+      padding:0 6px;
+      color:#000;
+    }
+
     /* Modals */
     .modal-overlay{
       position:fixed;
@@ -467,7 +477,7 @@
       z-index:50;
     }
     .modal{
-      width:680px;
+      width:740px;
       max-width:100%;
       background:#fff;
       border-radius:16px;
@@ -493,6 +503,7 @@
       justify-content:flex-end;
       gap:8px;
       background:#fff;
+      flex-wrap:wrap;
     }
 
     .kv{
@@ -524,6 +535,34 @@
     .textarea{ min-height:70px; resize:vertical; }
     .muted{ opacity:0.75; font-weight:800; font-size:12px; color:#000; }
 
+    /* Month picker */
+    .month-grid{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:8px;
+      padding-top:6px;
+    }
+    .month-head{
+      font-size:12px;
+      font-weight:900;
+      opacity:0.7;
+      text-align:center;
+      color:#000;
+    }
+    .day-btn{
+      border:1px solid var(--grid);
+      border-radius:12px;
+      background:#fff;
+      padding:10px;
+      cursor:pointer;
+      font-weight:900;
+      font-size:12px;
+      color:#000;
+      min-height:44px;
+    }
+    .day-btn.weekend{ background:rgba(144,210,181,0.25); }
+    .day-btn.muted{ opacity:0.35; }
+
     @media (max-width: 1100px){
       .layout{ grid-template-columns:1fr; }
       .excel{ min-width:1200px; }
@@ -537,7 +576,7 @@
       <img class="logo" src="assets/epicor-logo.svg" alt="Epicor" onerror="this.style.display='none'">
       <div class="title-wrap">
         <h1>Epicor Weekly Resource Planner</h1>
-        <div class="subtitle">Backlog drag and drop, leave stretch, holidays move and delete</div>
+        <div class="subtitle">Drag jobs, move and delete leave and holidays, stretch leave live</div>
       </div>
     </div>
     <div class="version" id="versionLabel"></div>
@@ -569,10 +608,23 @@
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="heading">Schedule, Monday to Sunday</div>
-            <div class="hint">Shift rows stacked, weekends highlighted</div>
+            <div class="heading" id="scheduleTitle">Schedule</div>
+            <div class="hint" id="scheduleHint">Week view, Monday to Sunday, shift rows stacked, weekends highlighted</div>
           </div>
+
           <div class="controls">
+            <div class="datebar">
+              <button class="btn" onclick="navPrev()">Prev</button>
+              <button class="btn" onclick="navToday()">Today</button>
+              <button class="btn" onclick="navNext()">Next</button>
+              <span class="date-range" id="rangeLabel"></span>
+              <select id="viewMode" class="select" onchange="setViewMode(this.value)">
+                <option value="week" selected>Week</option>
+                <option value="month">Month</option>
+                <option value="year">Year</option>
+              </select>
+            </div>
+
             <label style="font-size:12px;font-weight:900;color:#000;">Shift</label>
             <select id="shiftFilter" class="select" onchange="setShiftFilter(this.value)">
               <option value="both">Day and Night</option>
@@ -589,12 +641,12 @@
           </div>
         </div>
 
-        <div class="board-wrap">
+        <div class="board-wrap" id="boardWrap">
           <div class="excel" id="board"></div>
         </div>
 
         <div class="footer-note">
-          Leave and holiday: add with +. Drag to move. Leave can be stretched with the handle. Delete with 🗑.
+          Leave and holiday: add with +, drag to move, delete with 🗑 or from details, leave stretches live by dragging the handle.
         </div>
       </div>
     </div>
@@ -608,7 +660,7 @@
         <button class="btn" onclick="closeOverlay('detailsOverlay')">Close</button>
       </div>
       <div class="modal-body" id="detailsBody"></div>
-      <div class="modal-actions">
+      <div class="modal-actions" id="detailsActions">
         <button class="btn" onclick="closeOverlay('detailsOverlay')">Done</button>
       </div>
     </div>
@@ -655,8 +707,22 @@
     </div>
   </div>
 
+  <!-- Month / Year picker modal -->
+  <div class="modal-overlay" id="pickerOverlay" onclick="closeModalIfBackdrop(event,'pickerOverlay')">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div class="modal-title" id="pickerTitle">Pick a date</div>
+        <button class="btn" onclick="closeOverlay('pickerOverlay')">Close</button>
+      </div>
+      <div class="modal-body" id="pickerBody"></div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeOverlay('pickerOverlay')">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const APP_VERSION = "v2.2.0";
+    const APP_VERSION = "v2.3.0";
 
     // Images: prefer assets/Employees, fallback assets/employees, then initials
     const PHOTO_BASE_PRIMARY = "assets/Employees";
@@ -699,15 +765,22 @@
     let deptFilter = "all";
     let addCtx = null;
 
+    // Calendar navigation
+    let anchorDate = new Date();
+    anchorDate.setHours(0,0,0,0);
+
+    let viewMode = "week"; // week, month, year
+
     // Resize state
-    let resizeState = null; // { rangeId, resourceId }
+    let resizeState = null; // { rangeId, resourceId, weekDays }
     let rangesRenderShift = "day"; // shift where ranges are rendered (depends on filter)
 
     function init() {
       document.getElementById("versionLabel").textContent = APP_VERSION;
 
-      // Build department dropdown
+      // Build department dropdown once
       const deptSel = document.getElementById("deptFilter");
+      deptSel.innerHTML = '<option value="all">All</option>';
       const depts = Array.from(new Set(resources.map(r => r.department))).sort();
       depts.forEach(d => {
         const opt = document.createElement("option");
@@ -716,7 +789,61 @@
         deptSel.appendChild(opt);
       });
 
+      // Global drag and drop handling for ranges and jobs
+      const wrap = document.getElementById("boardWrap");
+      wrap.addEventListener("dragover", (e) => {
+        e.preventDefault();
+      });
+      wrap.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const payload = safeParse(e.dataTransfer.getData("text/plain"));
+        if (!payload) return;
+
+        const dz = findDropzoneAtPoint(e.clientX, e.clientY);
+        if (!dz) return;
+
+        const weekDays = getWeekMonToSun(anchorDate);
+        const resourceId = dz.dataset.resourceId;
+        const dayKey = dz.dataset.dayKey;
+        const shiftKey = dz.dataset.shiftKey;
+
+        handleDrop(payload, resourceId, dayKey, shiftKey, weekDays);
+
+        renderBacklog();
+        renderBoard();
+      });
+
       render();
+    }
+
+    function setViewMode(val) {
+      viewMode = val;
+      document.getElementById("viewMode").value = viewMode;
+
+      if (viewMode === "week") {
+        renderBoard();
+        return;
+      }
+
+      // Month and Year are pickers that jump back to week view
+      openPicker();
+    }
+
+    function navPrev() {
+      if (viewMode !== "week") viewMode = "week";
+      anchorDate = addDays(anchorDate, -7);
+      renderBoard();
+    }
+    function navNext() {
+      if (viewMode !== "week") viewMode = "week";
+      anchorDate = addDays(anchorDate, 7);
+      renderBoard();
+    }
+    function navToday() {
+      if (viewMode !== "week") viewMode = "week";
+      anchorDate = new Date();
+      anchorDate.setHours(0,0,0,0);
+      renderBoard();
     }
 
     function setShiftFilter(val) {
@@ -730,14 +857,26 @@
       renderBoard();
     }
 
-    function getWeekMonToSun() {
-      const now = new Date();
+    function addDays(date, plusDays) {
+      const d = new Date(date);
+      d.setDate(d.getDate() + plusDays);
+      d.setHours(0,0,0,0);
+      return d;
+    }
+
+    function startOfWeekMonday(d) {
+      const now = new Date(d);
+      now.setHours(0,0,0,0);
       const dow = now.getDay();
       const diffToMonday = (dow === 0 ? -6 : 1) - dow;
       const monday = new Date(now);
       monday.setDate(now.getDate() + diffToMonday);
       monday.setHours(0,0,0,0);
+      return monday;
+    }
 
+    function getWeekMonToSun(dateLike) {
+      const monday = startOfWeekMonday(dateLike);
       const days = [];
       for (let i = 0; i < 7; i++) {
         const d = new Date(monday);
@@ -745,7 +884,7 @@
         const key = d.toISOString().slice(0,10);
         const label = d.toLocaleDateString(undefined, { weekday: "short", day: "2-digit", month: "short" });
         const isWeekend = d.getDay() === 6 || d.getDay() === 0;
-        days.push({ key, label, isWeekend });
+        days.push({ key, label, isWeekend, date: d });
       }
       return days;
     }
@@ -848,7 +987,12 @@
     }
 
     function renderBoard() {
-      const weekDays = getWeekMonToSun();
+      document.getElementById("viewMode").value = "week";
+      viewMode = "week";
+
+      const weekDays = getWeekMonToSun(anchorDate);
+      updateRangeLabel(weekDays);
+
       const board = document.getElementById("board");
       board.innerHTML = "";
 
@@ -878,7 +1022,6 @@
 
       resList.forEach(r => {
         shifts.forEach((s, sIdx) => {
-          // Resource cell, span all visible shifts
           if (sIdx === 0) {
             const rc = document.createElement("div");
             rc.className = "cell resource";
@@ -893,7 +1036,7 @@
               img.onerror = null;
               img.src = `${PHOTO_BASE_FALLBACK}/${r.id}.png`;
               img.onerror = () => {
-                av.innerHTML = escapeHtml(initials(r.name));
+                av.textContent = initials(r.name);
               };
             };
             av.appendChild(img);
@@ -928,7 +1071,6 @@
             const top = document.createElement("div");
             top.className = "daycell-top";
 
-            // plus only on the shift where ranges render (so it stays visible in Night only mode)
             if (s.key === rangesRenderShift) {
               const plus = document.createElement("button");
               plus.className = "plus-btn";
@@ -953,6 +1095,7 @@
             });
             dz.addEventListener("dragleave", () => dz.classList.remove("over"));
             dz.addEventListener("drop", (e) => {
+              // keep local drop for convenience, global drop also exists
               e.preventDefault();
               dz.classList.remove("over");
               const payload = safeParse(e.dataTransfer.getData("text/plain"));
@@ -963,14 +1106,12 @@
               renderBoard();
             });
 
-            // Render ranges only on rangesRenderShift to avoid duplication across day/night
             if (s.key === rangesRenderShift) {
               dayRanges
                 .filter(rr => rr.resourceId === r.id && d.key >= rr.startDayKey && d.key <= rr.endDayKey)
-                .forEach(rr => dz.appendChild(renderRangeMini(rr, r, d, weekDays)));
+                .forEach(rr => dz.appendChild(renderRangeMini(rr, weekDays)));
             }
 
-            // Render assignments for this cell
             assignments
               .filter(a => a.resourceId === r.id && a.dayKey === d.key && a.shiftKey === s.key)
               .forEach(a => {
@@ -988,11 +1129,115 @@
       board.appendChild(grid);
     }
 
+    function updateRangeLabel(weekDays) {
+      const start = weekDays[0].date;
+      const end = weekDays[6].date;
+      const fmt = (d) => d.toLocaleDateString(undefined, { day:"2-digit", month:"short", year:"numeric" });
+      document.getElementById("rangeLabel").textContent = `${fmt(start)} to ${fmt(end)}`;
+      document.getElementById("scheduleTitle").textContent = "Schedule";
+      document.getElementById("scheduleHint").textContent = "Week view, Monday to Sunday, shift rows stacked, weekends highlighted";
+    }
+
+    function openPicker() {
+      const body = document.getElementById("pickerBody");
+      const title = document.getElementById("pickerTitle");
+      body.innerHTML = "";
+
+      if (viewMode === "month") {
+        const m = new Date(anchorDate);
+        m.setDate(1);
+        title.textContent = m.toLocaleDateString(undefined, { month:"long", year:"numeric" });
+
+        const dow = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+        const head = document.createElement("div");
+        head.className = "month-grid";
+        dow.forEach(x => {
+          const h = document.createElement("div");
+          h.className = "month-head";
+          h.textContent = x;
+          head.appendChild(h);
+        });
+        body.appendChild(head);
+
+        const grid = document.createElement("div");
+        grid.className = "month-grid";
+
+        const firstDow = (m.getDay() === 0 ? 7 : m.getDay()); // 1..7 with Mon=1
+        const start = new Date(m);
+        start.setDate(m.getDate() - (firstDow - 1));
+
+        for (let i = 0; i < 42; i++) {
+          const d = new Date(start);
+          d.setDate(start.getDate() + i);
+          const btn = document.createElement("button");
+          btn.className = "day-btn";
+          const isWeekend = d.getDay() === 6 || d.getDay() === 0;
+          if (isWeekend) btn.classList.add("weekend");
+          if (d.getMonth() !== m.getMonth()) btn.classList.add("muted");
+          btn.textContent = d.getDate();
+
+          btn.onclick = () => {
+            anchorDate = new Date(d);
+            anchorDate.setHours(0,0,0,0);
+            closeOverlay("pickerOverlay");
+            viewMode = "week";
+            renderBoard();
+          };
+
+          grid.appendChild(btn);
+        }
+        body.appendChild(grid);
+
+        openOverlay("pickerOverlay");
+        return;
+      }
+
+      if (viewMode === "year") {
+        const y = anchorDate.getFullYear();
+        title.textContent = `Select month in ${y}`;
+
+        const months = Array.from({length:12}, (_,i) => i);
+        const grid = document.createElement("div");
+        grid.style.display = "grid";
+        grid.style.gridTemplateColumns = "repeat(3, 1fr)";
+        grid.style.gap = "10px";
+
+        months.forEach(mi => {
+          const d = new Date(y, mi, 1);
+          const btn = document.createElement("button");
+          btn.className = "day-btn";
+          btn.textContent = d.toLocaleDateString(undefined, { month:"long" });
+          btn.onclick = () => {
+            viewMode = "month";
+            anchorDate = new Date(y, mi, 1);
+            anchorDate.setHours(0,0,0,0);
+            closeOverlay("pickerOverlay");
+            openPicker();
+          };
+          grid.appendChild(btn);
+        });
+
+        body.appendChild(grid);
+        openOverlay("pickerOverlay");
+      }
+    }
+
     function safeParse(s) { try { return JSON.parse(s); } catch { return null; } }
+
+    function findDropzoneAtPoint(x, y) {
+      const els = document.elementsFromPoint(x, y);
+      for (const el of els) {
+        if (el && el.classList && el.classList.contains("dropzone")) return el;
+      }
+      for (const el of els) {
+        const dz = el && el.closest ? el.closest(".dropzone") : null;
+        if (dz) return dz;
+      }
+      return null;
+    }
 
     function handleDrop(payload, resourceId, dayKey, shiftKey, weekDays) {
       if (payload.type === "job") {
-        // Create assignment, do not remove from backlog, supports multi-resource
         assignments.push({
           id: `A-${Date.now()}-${Math.floor(Math.random()*1000)}`,
           jobId: payload.jobId,
@@ -1039,7 +1284,9 @@
         <button class="icon-btn" title="Remove assignment">🗑</button>
       `;
 
-      card.querySelector(".icon-btn").onclick = (ev) => {
+      const delBtn = card.querySelector(".icon-btn");
+      delBtn.addEventListener("pointerdown", (ev) => { ev.preventDefault(); ev.stopPropagation(); });
+      delBtn.onclick = (ev) => {
         ev.stopPropagation();
         assignments = assignments.filter(a => a.id !== assignment.id);
         renderBacklog();
@@ -1049,12 +1296,11 @@
       return card;
     }
 
-    function renderRangeMini(range, resource, day, weekDays) {
+    function renderRangeMini(range, weekDays) {
       const card = document.createElement("div");
       card.className = `mini ${range.kind === "holiday" ? "holiday" : "leave"}`;
       card.draggable = true;
 
-      // Drag move range
       card.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", JSON.stringify({
           type: "range",
@@ -1080,6 +1326,7 @@
       del.type = "button";
       del.title = "Delete";
       del.textContent = "🗑";
+      del.addEventListener("pointerdown", (ev) => { ev.preventDefault(); ev.stopPropagation(); });
       del.onclick = (ev) => {
         ev.stopPropagation();
         dayRanges = dayRanges.filter(r => r.id !== range.id);
@@ -1089,7 +1336,6 @@
       card.appendChild(line);
       card.appendChild(del);
 
-      // Resize handle for leave only
       if (range.kind === "leave") {
         const handle = document.createElement("div");
         handle.className = "resize-handle";
@@ -1111,7 +1357,7 @@
       const r = dayRanges.find(x => x.id === rangeId);
       if (!r) return;
 
-      resizeState = { rangeId, resourceId };
+      resizeState = { rangeId, resourceId, weekDays };
       ev.target.setPointerCapture(ev.pointerId);
 
       document.body.style.userSelect = "none";
@@ -1121,10 +1367,8 @@
       function onResizePointerMove(e) {
         if (!resizeState) return;
 
-        const el = document.elementFromPoint(e.clientX, e.clientY);
-        if (!el) return;
-
-        const dz = el.closest ? el.closest(".dropzone") : null;
+        // find dropzone even if pointer is on top of chips
+        const dz = findDropzoneAtPoint(e.clientX, e.clientY);
         if (!dz) return;
 
         const rid = dz.dataset.resourceId;
@@ -1137,7 +1381,7 @@
         const rr = dayRanges.find(x => x.id === resizeState.rangeId);
         if (!rr) return;
 
-        const target = clampToWeek(dk, weekDays);
+        const target = clampToWeek(dk, resizeState.weekDays);
 
         if (target >= rr.startDayKey) {
           rr.endDayKey = target;
@@ -1146,6 +1390,7 @@
           rr.startDayKey = target;
         }
 
+        // Live growth: render immediately as it changes
         renderBoard();
       }
 
@@ -1157,7 +1402,6 @@
       }
     }
 
-    // Add form
     function openAddForm(resource, day) {
       addCtx = { resource, day };
 
@@ -1209,11 +1453,13 @@
       renderBoard();
     }
 
-    // Details
     function openJobDetails(job, assignment) {
       document.getElementById("detailsTitle").textContent = job.jobNumber;
 
       const body = document.getElementById("detailsBody");
+      const actions = document.getElementById("detailsActions");
+      actions.innerHTML = `<button class="btn" onclick="closeOverlay('detailsOverlay')">Done</button>`;
+
       const rows = [];
 
       if (assignment) {
@@ -1247,6 +1493,8 @@
     function openRangeDetails(range) {
       document.getElementById("detailsTitle").textContent = range.kind === "holiday" ? "Holiday" : "Leave";
       const body = document.getElementById("detailsBody");
+      const actions = document.getElementById("detailsActions");
+
       const rows = [
         ["Type", range.kind.toUpperCase()],
         ["Label", range.label || ""],
@@ -1264,7 +1512,19 @@
           `).join("")}
         </div>
       `;
+
+      actions.innerHTML = `
+        <button class="btn" onclick="closeOverlay('detailsOverlay')">Close</button>
+        <button class="btn btn-primary" onclick="deleteRange('${escapeHtml(range.id)}')">Delete</button>
+      `;
+
       openOverlay("detailsOverlay");
+    }
+
+    function deleteRange(rangeId) {
+      dayRanges = dayRanges.filter(r => r.id !== rangeId);
+      closeOverlay("detailsOverlay");
+      renderBoard();
     }
 
     function openOverlay(id) { document.getElementById(id).style.display = "flex"; }
@@ -1272,7 +1532,7 @@
     function closeModalIfBackdrop(e, id) { if (e.target && e.target.id === id) closeOverlay(id); }
 
     function autoFillDemo() {
-      const weekDays = getWeekMonToSun();
+      const weekDays = getWeekMonToSun(anchorDate);
       const shifts = SHIFTS;
       const resList = resources;
 
@@ -1307,13 +1567,15 @@
       document.getElementById("shiftFilter").value = "both";
       document.getElementById("deptFilter").value = "all";
       rangesRenderShift = "day";
+      anchorDate = new Date();
+      anchorDate.setHours(0,0,0,0);
       init();
     }
 
     function saveChanges() {
-      // Example payload for later REST integration
       const payload = {
         version: APP_VERSION,
+        anchorDate: anchorDate.toISOString().slice(0,10),
         assignments: assignments.map(a => ({
           assignmentId: a.id,
           jobId: a.jobId,
