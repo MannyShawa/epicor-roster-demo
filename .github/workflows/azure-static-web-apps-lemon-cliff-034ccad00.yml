@@ -1,46 +1,1343 @@
-name: Azure Static Web Apps CI/CD
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Epicor Weekly Resource Planner</title>
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches:
-      - main
+  <style>
+    :root{
+      --dark-petrol:#002b3a;
+      --petrol:#053c55;
+      --teal:#025064;
+      --light-teal:#317d9b;
+      --aqua:#90d2b5;
+      --light-gray:#eef2f5;
 
-jobs:
-  build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
-    runs-on: ubuntu-latest
-    name: Build and Deploy Job
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-          lfs: false
-      - name: Build And Deploy
-        id: builddeploy
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LEMON_CLIFF_034CCAD00 }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
-          action: "upload"
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "/" # App source code path
-          api_location: "" # Api source code path - optional
-          output_location: "." # Built app content directory - optional
-          ###### End of Repository/Build Configurations ######
+      --job:#90d2b5;
+      --holiday:#ff8873;
 
-  close_pull_request_job:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    name: Close Pull Request Job
-    steps:
-      - name: Close Pull Request
-        id: closepullrequest
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LEMON_CLIFF_034CCAD00 }}
-          action: "close"
+      --grid:#cfd8de;
+      --bg:var(--light-gray);
+      --card:#ffffff;
+      --text:#000000;
+
+      --radius:14px;
+      --shadow:0 10px 24px rgba(0,0,0,0.08);
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:"Segoe UI", Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    .topbar{
+      background:linear-gradient(90deg, var(--petrol), var(--dark-petrol));
+      color:#fff;
+      padding:14px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+    }
+    .topbar-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+    .logo{
+      height:26px;
+      width:auto;
+      display:block;
+    }
+    .title-wrap{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width:0;
+    }
+    .title-wrap h1{
+      margin:0;
+      font-size:18px;
+      font-weight:900;
+      letter-spacing:0.2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .subtitle{
+      font-size:12px;
+      opacity:0.9;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .version{
+      font-size:12px;
+      opacity:0.9;
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .container{
+      max-width:1900px;
+      margin:16px auto;
+      padding:0 16px 22px;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:420px 1fr;
+      gap:12px;
+      align-items:start;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--grid);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-header{
+      padding:12px 14px;
+      border-bottom:1px solid var(--grid);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      background:#fff;
+    }
+    .heading{
+      font-size:13px;
+      font-weight:900;
+      margin:0;
+      color:#000;
+    }
+    .hint{
+      font-size:12px;
+      margin-top:3px;
+      opacity:0.75;
+      color:#000;
+    }
+
+    .controls{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+
+    .btn{
+      border:1px solid var(--grid);
+      border-radius:10px;
+      padding:10px 12px;
+      font-weight:900;
+      font-size:12px;
+      cursor:pointer;
+      background:#fff;
+      color:#000;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .btn:active{ transform:translateY(1px); }
+
+    .btn-primary{
+      background:var(--teal);
+      border-color:var(--teal);
+      color:#fff;
+    }
+
+    .select{
+      border:1px solid var(--grid);
+      border-radius:10px;
+      padding:9px 10px;
+      font-weight:900;
+      font-size:12px;
+      color:#000;
+      background:#fff;
+      cursor:pointer;
+    }
+
+    /* Backlog jobs */
+    .backlog{
+      padding:10px 12px 14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .job-card{
+      border:1px solid var(--grid);
+      border-radius:14px;
+      background:#fff;
+      box-shadow:0 10px 18px rgba(0,0,0,0.06);
+      padding:10px 10px;
+      cursor:grab;
+      user-select:none;
+    }
+    .job-card:active{ cursor:grabbing; }
+    .job-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:8px;
+    }
+    .job-title{
+      font-weight:900;
+      font-size:12px;
+      color:#000;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .pill{
+      font-size:10.5px;
+      font-weight:900;
+      border:1px solid rgba(0,43,58,0.20);
+      border-radius:999px;
+      padding:2px 8px;
+      background:#fff;
+      color:#000;
+      white-space:nowrap;
+      flex:0 0 auto;
+    }
+    .job-sub{
+      font-size:12px;
+      font-weight:900;
+      color:#000;
+      opacity:0.78;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      margin-bottom:8px;
+    }
+    .job-meta{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:6px 10px;
+      font-size:12px;
+      color:#000;
+    }
+    .k{ opacity:0.7; font-weight:900; }
+    .v{ font-weight:900; }
+
+    /* Board */
+    .board-wrap{
+      padding:10px 12px 14px;
+      overflow:auto;
+      background:#fff;
+    }
+
+    .excel{
+      min-width:1500px;
+      border:1px solid var(--grid);
+      border-radius:12px;
+      overflow:hidden;
+      background:#fff;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:330px 110px repeat(7, minmax(170px, 1fr));
+    }
+
+    .cell{
+      border-right:1px solid var(--grid);
+      border-bottom:1px solid var(--grid);
+      padding:10px;
+      background:#fff;
+      min-height:78px;
+    }
+
+    .cell.header{
+      background:var(--light-gray);
+      font-weight:900;
+      font-size:12px;
+      color:#000;
+      min-height:unset;
+      position:sticky;
+      top:0;
+      z-index:5;
+    }
+
+    .cell.header.weekend{
+      background:var(--aqua);
+    }
+
+    .cell.resource{
+      position:sticky;
+      left:0;
+      z-index:4;
+      background:#fff;
+    }
+
+    .cell.shift{
+      position:sticky;
+      left:330px;
+      z-index:4;
+      background:#fff;
+      font-weight:900;
+      font-size:12px;
+      opacity:0.85;
+    }
+
+    .corner{
+      position:sticky;
+      top:0;
+      left:0;
+      z-index:7;
+      background:var(--light-gray);
+    }
+
+    .corner-shift{
+      position:sticky;
+      top:0;
+      left:330px;
+      z-index:7;
+      background:var(--light-gray);
+    }
+
+    .resource-row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .avatar{
+      width:42px;
+      height:42px;
+      border-radius:12px;
+      border:1px solid var(--grid);
+      background:#fff;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+      color:var(--petrol);
+      flex:0 0 auto;
+    }
+    .avatar img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .rname{ font-weight:900; font-size:12px; color:#000; }
+    .rsub{ font-weight:900; font-size:11px; opacity:0.7; margin-top:2px; color:#000; }
+
+    .daycell{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      height:100%;
+    }
+    .daycell-top{
+      display:flex;
+      justify-content:flex-end;
+      align-items:center;
+      height:22px;
+    }
+    .plus-btn{
+      width:22px;
+      height:22px;
+      border-radius:7px;
+      border:1px solid var(--teal);
+      background:rgba(2,80,100,0.10);
+      color:#000;
+      font-weight:900;
+      font-size:16px;
+      line-height:18px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      user-select:none;
+    }
+
+    .dropzone{
+      flex:1 1 auto;
+      min-height:44px;
+      padding:6px;
+      border:1px dashed rgba(2,80,100,0.35);
+      background:rgba(49,125,155,0.06);
+      border-radius:10px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      transition:background 120ms ease, border-color 120ms ease;
+    }
+    .dropzone.weekend{
+      background:rgba(144,210,181,0.18);
+      border-color:rgba(2,80,100,0.30);
+    }
+    .dropzone.over{
+      background:rgba(49,125,155,0.14);
+      border-color:rgba(2,80,100,0.55);
+    }
+
+    /* One line chips */
+    .mini{
+      border-radius:10px;
+      padding:6px 8px;
+      border:1px solid rgba(0,43,58,0.20);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      min-height:32px;
+      cursor:grab;
+      user-select:none;
+    }
+    .mini:active{ cursor:grabbing; }
+
+    .mini .line{
+      font-size:12px;
+      font-weight:900;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      flex:1 1 auto;
+      min-width:0;
+      color:#000;
+    }
+
+    /* Color rules requested */
+    .mini.job-chip{
+      background:rgba(144,210,181,0.55);
+    }
+    .mini.holiday{
+      background:rgba(255,136,115,0.60);
+    }
+    .mini.leave{
+      background:rgba(2,80,100,0.18);
+    }
+
+    .icon-btn{
+      border:1px solid rgba(0,43,58,0.20);
+      background:#fff;
+      width:22px;
+      height:22px;
+      border-radius:8px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      user-select:none;
+      flex:0 0 auto;
+      color:#000;
+    }
+
+    .resize-handle{
+      width:10px;
+      height:22px;
+      border-radius:7px;
+      border:1px solid rgba(0,43,58,0.20);
+      background:rgba(238,242,245,0.9);
+      cursor:ew-resize;
+      flex:0 0 auto;
+    }
+
+    .footer-note{
+      padding:10px 14px;
+      border-top:1px solid var(--grid);
+      font-size:12px;
+      opacity:0.75;
+      background:#fff;
+      color:#000;
+    }
+
+    /* Modals */
+    .modal-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.35);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:50;
+    }
+    .modal{
+      width:680px;
+      max-width:100%;
+      background:#fff;
+      border-radius:16px;
+      border:1px solid var(--grid);
+      box-shadow:0 20px 60px rgba(0,0,0,0.22);
+      overflow:hidden;
+    }
+    .modal-header{
+      padding:12px 14px;
+      border-bottom:1px solid var(--grid);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      background:var(--light-gray);
+    }
+    .modal-title{ font-weight:900; font-size:13px; margin:0; color:#000; }
+    .modal-body{ padding:14px; display:flex; flex-direction:column; gap:10px; font-size:12px; color:#000; }
+    .modal-actions{
+      padding:12px 14px;
+      border-top:1px solid var(--grid);
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      background:#fff;
+    }
+
+    .kv{
+      display:grid;
+      grid-template-columns: 190px 1fr;
+      gap:8px 12px;
+      align-items:start;
+      font-size:13px;
+      color:#000;
+    }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns: 180px 1fr;
+      gap:10px 12px;
+      align-items:center;
+    }
+    .input,.select2,.textarea{
+      width:100%;
+      padding:10px 10px;
+      border-radius:10px;
+      border:1px solid var(--grid);
+      font-weight:800;
+      font-size:12px;
+      outline:none;
+      color:#000;
+      background:#fff;
+    }
+    .textarea{ min-height:70px; resize:vertical; }
+    .muted{ opacity:0.75; font-weight:800; font-size:12px; color:#000; }
+
+    @media (max-width: 1100px){
+      .layout{ grid-template-columns:1fr; }
+      .excel{ min-width:1200px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="topbar-left">
+      <img class="logo" src="assets/epicor-logo.svg" alt="Epicor" onerror="this.style.display='none'">
+      <div class="title-wrap">
+        <h1>Epicor Weekly Resource Planner</h1>
+        <div class="subtitle">Backlog drag and drop, leave stretch, holidays move and delete</div>
+      </div>
+    </div>
+    <div class="version" id="versionLabel"></div>
+  </div>
+
+  <div class="container">
+    <div class="layout">
+      <!-- Backlog -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="heading">Job Backlog</div>
+            <div class="hint">Drag jobs to the calendar, same job can be assigned to multiple resources</div>
+          </div>
+          <div class="controls">
+            <button class="btn" onclick="resetDemo()">Reset</button>
+            <button class="btn" onclick="autoFillDemo()">Auto Fill</button>
+          </div>
+        </div>
+
+        <div class="backlog" id="backlog"></div>
+
+        <div class="footer-note">
+          Demo only, later Epicor REST will load Jobs and Resources and POST assignments.
+        </div>
+      </div>
+
+      <!-- Board -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="heading">Schedule, Monday to Sunday</div>
+            <div class="hint">Shift rows stacked, weekends highlighted</div>
+          </div>
+          <div class="controls">
+            <label style="font-size:12px;font-weight:900;color:#000;">Shift</label>
+            <select id="shiftFilter" class="select" onchange="setShiftFilter(this.value)">
+              <option value="both">Day and Night</option>
+              <option value="day">Day only</option>
+              <option value="night">Night only</option>
+            </select>
+
+            <label style="font-size:12px;font-weight:900;color:#000;">Department</label>
+            <select id="deptFilter" class="select" onchange="setDeptFilter(this.value)">
+              <option value="all">All</option>
+            </select>
+
+            <button class="btn btn-primary" onclick="saveChanges()">Save Changes</button>
+          </div>
+        </div>
+
+        <div class="board-wrap">
+          <div class="excel" id="board"></div>
+        </div>
+
+        <div class="footer-note">
+          Leave and holiday: add with +. Drag to move. Leave can be stretched with the handle. Delete with 🗑.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details modal -->
+  <div class="modal-overlay" id="detailsOverlay" onclick="closeModalIfBackdrop(event,'detailsOverlay')">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div class="modal-title" id="detailsTitle">Details</div>
+        <button class="btn" onclick="closeOverlay('detailsOverlay')">Close</button>
+      </div>
+      <div class="modal-body" id="detailsBody"></div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeOverlay('detailsOverlay')">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Holiday/Leave modal -->
+  <div class="modal-overlay" id="addOverlay" onclick="closeModalIfBackdrop(event,'addOverlay')">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div class="modal-title">Add holiday or leave</div>
+        <button class="btn" onclick="closeOverlay('addOverlay')">Close</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="muted" id="addContext"></div>
+
+        <div class="form-grid">
+          <div class="k">Type</div>
+          <select class="select2" id="addType" onchange="onAddTypeChange()">
+            <option value="holiday">Holiday</option>
+            <option value="leave">Leave</option>
+          </select>
+
+          <div class="k">Holiday</div>
+          <select class="select2" id="holidayType">
+            <option value="public">Public Holiday</option>
+            <option value="company">Company Holiday</option>
+            <option value="site">Site Shutdown</option>
+            <option value="other">Other</option>
+          </select>
+
+          <div class="k">Label</div>
+          <input class="input" id="addLabel" placeholder="Holiday required, Leave optional">
+
+          <div class="k">Notes</div>
+          <textarea class="textarea" id="addNotes" placeholder="Optional"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn" onclick="closeOverlay('addOverlay')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAdd()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const APP_VERSION = "v2.2.0";
+
+    // Images: prefer assets/Employees, fallback assets/employees, then initials
+    const PHOTO_BASE_PRIMARY = "assets/Employees";
+    const PHOTO_BASE_FALLBACK = "assets/employees";
+
+    const demoResources = [
+      { id: "EMP001", name: "John Smith", department: "Assembly" },
+      { id: "EMP002", name: "Sarah Lee", department: "Welding" },
+      { id: "EMP003", name: "Michael Tran", department: "Paint" },
+      { id: "EMP004", name: "Aisha Khan", department: "Assembly" }
+    ];
+
+    const demoJobs = [
+      { kind: "job", id: "JB-1", jobNumber: "J-10021", asmNumber: "10", opNumber: "020", opDescription: "Wiring", partNumber: "PN-AX12", customerNumber: "CUST-1000", partDescription: "Switchboard enclosure", quantity: 2, durationHours: 6 },
+      { kind: "job", id: "JB-2", jobNumber: "J-10034", asmNumber: "10", opNumber: "030", opDescription: "Terminate", partNumber: "PN-WR08", customerNumber: "CUST-1042", partDescription: "Panel wiring kit", quantity: 4, durationHours: 4 },
+      { kind: "job", id: "JB-3", jobNumber: "J-10040", asmNumber: "20", opNumber: "010", opDescription: "FAT", partNumber: "PN-FAT01", customerNumber: "CUST-1000", partDescription: "Factory acceptance test", quantity: 1, durationHours: 3 },
+      { kind: "job", id: "JB-4", jobNumber: "J-10055", asmNumber: "05", opNumber: "010", opDescription: "Cut Drill", partNumber: "PN-SM22", customerNumber: "CUST-1108", partDescription: "Sheet metal set", quantity: 6, durationHours: 5 },
+      { kind: "job", id: "JB-5", jobNumber: "J-10080", asmNumber: "30", opNumber: "015", opDescription: "Prep", partNumber: "PN-PC09", customerNumber: "CUST-1205", partDescription: "Powder coat prep batch", quantity: 3, durationHours: 4 },
+      { kind: "job", id: "JB-6", jobNumber: "J-10110", asmNumber: "40", opNumber: "005", opDescription: "Pack", partNumber: "PN-PK02", customerNumber: "CUST-1310", partDescription: "Packaging and labels", quantity: 10, durationHours: 2 }
+    ];
+
+    const SHIFTS = [
+      { key: "day", label: "Day" },
+      { key: "night", label: "Night" }
+    ];
+
+    // State
+    let resources = structuredClone(demoResources);
+    let jobs = structuredClone(demoJobs);
+
+    // Assignments allow multi-resource: each drop creates a new assignment row
+    // { id, jobId, resourceId, dayKey, shiftKey }
+    let assignments = [];
+
+    // dayRanges: leave / holiday, applies to both shifts, we render it once (on visible shift)
+    // { id, kind:'holiday'|'leave', resourceId, startDayKey, endDayKey, label, holidayType?, notes? }
+    let dayRanges = [];
+
+    let shiftFilter = "both";
+    let deptFilter = "all";
+    let addCtx = null;
+
+    // Resize state
+    let resizeState = null; // { rangeId, resourceId }
+    let rangesRenderShift = "day"; // shift where ranges are rendered (depends on filter)
+
+    function init() {
+      document.getElementById("versionLabel").textContent = APP_VERSION;
+
+      // Build department dropdown
+      const deptSel = document.getElementById("deptFilter");
+      const depts = Array.from(new Set(resources.map(r => r.department))).sort();
+      depts.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d;
+        opt.textContent = d;
+        deptSel.appendChild(opt);
+      });
+
+      render();
+    }
+
+    function setShiftFilter(val) {
+      shiftFilter = val;
+      rangesRenderShift = (shiftFilter === "night") ? "night" : "day";
+      renderBoard();
+    }
+
+    function setDeptFilter(val) {
+      deptFilter = val;
+      renderBoard();
+    }
+
+    function getWeekMonToSun() {
+      const now = new Date();
+      const dow = now.getDay();
+      const diffToMonday = (dow === 0 ? -6 : 1) - dow;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + diffToMonday);
+      monday.setHours(0,0,0,0);
+
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        const key = d.toISOString().slice(0,10);
+        const label = d.toLocaleDateString(undefined, { weekday: "short", day: "2-digit", month: "short" });
+        const isWeekend = d.getDay() === 6 || d.getDay() === 0;
+        days.push({ key, label, isWeekend });
+      }
+      return days;
+    }
+
+    function clampToWeek(dayKey, weekDays) {
+      const min = weekDays[0].key;
+      const max = weekDays[6].key;
+      if (dayKey < min) return min;
+      if (dayKey > max) return max;
+      return dayKey;
+    }
+
+    function daySpan(startKey, endKey) {
+      const a = new Date(startKey + "T00:00:00");
+      const b = new Date(endKey + "T00:00:00");
+      const diff = Math.round((b - a) / (1000*60*60*24));
+      return Math.max(0, diff);
+    }
+
+    function addDaysIso(dayKey, plusDays) {
+      const d = new Date(dayKey + "T00:00:00");
+      d.setDate(d.getDate() + plusDays);
+      return d.toISOString().slice(0,10);
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function initials(name) {
+      const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+      const a = parts[0]?.[0] || "E";
+      const b = parts[1]?.[0] || "";
+      return (a + b).toUpperCase();
+    }
+
+    function render() {
+      renderBacklog();
+      renderBoard();
+    }
+
+    function renderBacklog() {
+      const el = document.getElementById("backlog");
+      el.innerHTML = "";
+
+      jobs.forEach(job => {
+        const assignedCount = assignments.filter(a => a.jobId === job.id).length;
+        el.appendChild(renderBacklogCard(job, assignedCount));
+      });
+    }
+
+    function renderBacklogCard(job, assignedCount) {
+      const card = document.createElement("div");
+      card.className = "job-card";
+      card.draggable = true;
+
+      card.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", JSON.stringify({
+          type: "job",
+          jobId: job.id
+        }));
+        e.dataTransfer.effectAllowed = "copy";
+      });
+
+      card.onclick = () => openJobDetails(job);
+
+      card.innerHTML = `
+        <div class="job-top">
+          <div class="job-title">${escapeHtml(job.jobNumber)} , ${escapeHtml(job.partNumber)}</div>
+          <div class="pill">${escapeHtml(job.durationHours)}h</div>
+        </div>
+
+        <div class="job-sub">${escapeHtml(job.partDescription)}</div>
+
+        <div class="job-meta">
+          <div class="k">Asm , Op</div><div class="v">${escapeHtml(job.asmNumber)} , ${escapeHtml(job.opNumber)} ${escapeHtml(job.opDescription)}</div>
+          <div class="k">Customer</div><div class="v">${escapeHtml(job.customerNumber)}</div>
+          <div class="k">Qty</div><div class="v">${escapeHtml(job.quantity)}</div>
+          <div class="k">Assigned</div><div class="v">${escapeHtml(assignedCount)}</div>
+        </div>
+      `;
+
+      return card;
+    }
+
+    function visibleShifts() {
+      if (shiftFilter === "day") return [SHIFTS[0]];
+      if (shiftFilter === "night") return [SHIFTS[1]];
+      return SHIFTS;
+    }
+
+    function filteredResources() {
+      if (deptFilter === "all") return resources;
+      return resources.filter(r => r.department === deptFilter);
+    }
+
+    function renderBoard() {
+      const weekDays = getWeekMonToSun();
+      const board = document.getElementById("board");
+      board.innerHTML = "";
+
+      const grid = document.createElement("div");
+      grid.className = "grid";
+
+      // Headers
+      const corner = document.createElement("div");
+      corner.className = "cell header corner";
+      corner.textContent = "Resource";
+      grid.appendChild(corner);
+
+      const shiftHead = document.createElement("div");
+      shiftHead.className = "cell header corner-shift";
+      shiftHead.textContent = "Shift";
+      grid.appendChild(shiftHead);
+
+      weekDays.forEach(d => {
+        const h = document.createElement("div");
+        h.className = `cell header${d.isWeekend ? " weekend" : ""}`;
+        h.textContent = d.label;
+        grid.appendChild(h);
+      });
+
+      const shifts = visibleShifts();
+      const resList = filteredResources();
+
+      resList.forEach(r => {
+        shifts.forEach((s, sIdx) => {
+          // Resource cell, span all visible shifts
+          if (sIdx === 0) {
+            const rc = document.createElement("div");
+            rc.className = "cell resource";
+            rc.style.gridRow = `span ${shifts.length}`;
+
+            const av = document.createElement("div");
+            av.className = "avatar";
+            const img = new Image();
+            img.src = `${PHOTO_BASE_PRIMARY}/${r.id}.png`;
+            img.alt = r.name;
+            img.onerror = () => {
+              img.onerror = null;
+              img.src = `${PHOTO_BASE_FALLBACK}/${r.id}.png`;
+              img.onerror = () => {
+                av.innerHTML = escapeHtml(initials(r.name));
+              };
+            };
+            av.appendChild(img);
+
+            const txt = document.createElement("div");
+            txt.innerHTML = `
+              <div class="rname">${escapeHtml(r.name)}</div>
+              <div class="rsub">${escapeHtml(r.department)} , ${escapeHtml(r.id)}</div>
+            `;
+
+            const row = document.createElement("div");
+            row.className = "resource-row";
+            row.appendChild(av);
+            row.appendChild(txt);
+            rc.appendChild(row);
+
+            grid.appendChild(rc);
+          }
+
+          const sc = document.createElement("div");
+          sc.className = "cell shift";
+          sc.textContent = s.label;
+          grid.appendChild(sc);
+
+          weekDays.forEach(d => {
+            const c = document.createElement("div");
+            c.className = "cell";
+
+            const wrap = document.createElement("div");
+            wrap.className = "daycell";
+
+            const top = document.createElement("div");
+            top.className = "daycell-top";
+
+            // plus only on the shift where ranges render (so it stays visible in Night only mode)
+            if (s.key === rangesRenderShift) {
+              const plus = document.createElement("button");
+              plus.className = "plus-btn";
+              plus.type = "button";
+              plus.textContent = "+";
+              plus.title = "Add holiday or leave";
+              plus.onclick = () => openAddForm(r, d);
+              top.appendChild(plus);
+            }
+
+            wrap.appendChild(top);
+
+            const dz = document.createElement("div");
+            dz.className = `dropzone${d.isWeekend ? " weekend" : ""}`;
+            dz.dataset.resourceId = r.id;
+            dz.dataset.dayKey = d.key;
+            dz.dataset.shiftKey = s.key;
+
+            dz.addEventListener("dragover", (e) => {
+              e.preventDefault();
+              dz.classList.add("over");
+            });
+            dz.addEventListener("dragleave", () => dz.classList.remove("over"));
+            dz.addEventListener("drop", (e) => {
+              e.preventDefault();
+              dz.classList.remove("over");
+              const payload = safeParse(e.dataTransfer.getData("text/plain"));
+              if (!payload) return;
+
+              handleDrop(payload, r.id, d.key, s.key, weekDays);
+              renderBacklog();
+              renderBoard();
+            });
+
+            // Render ranges only on rangesRenderShift to avoid duplication across day/night
+            if (s.key === rangesRenderShift) {
+              dayRanges
+                .filter(rr => rr.resourceId === r.id && d.key >= rr.startDayKey && d.key <= rr.endDayKey)
+                .forEach(rr => dz.appendChild(renderRangeMini(rr, r, d, weekDays)));
+            }
+
+            // Render assignments for this cell
+            assignments
+              .filter(a => a.resourceId === r.id && a.dayKey === d.key && a.shiftKey === s.key)
+              .forEach(a => {
+                const job = jobs.find(j => j.id === a.jobId);
+                if (job) dz.appendChild(renderJobMini(job, a));
+              });
+
+            wrap.appendChild(dz);
+            c.appendChild(wrap);
+            grid.appendChild(c);
+          });
+        });
+      });
+
+      board.appendChild(grid);
+    }
+
+    function safeParse(s) { try { return JSON.parse(s); } catch { return null; } }
+
+    function handleDrop(payload, resourceId, dayKey, shiftKey, weekDays) {
+      if (payload.type === "job") {
+        // Create assignment, do not remove from backlog, supports multi-resource
+        assignments.push({
+          id: `A-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+          jobId: payload.jobId,
+          resourceId,
+          dayKey,
+          shiftKey
+        });
+        return;
+      }
+
+      if (payload.type === "range") {
+        const r = dayRanges.find(x => x.id === payload.rangeId);
+        if (!r) return;
+        if (r.resourceId !== resourceId) return;
+
+        const span = daySpan(r.startDayKey, r.endDayKey);
+        const newStart = clampToWeek(dayKey, weekDays);
+        r.startDayKey = newStart;
+        r.endDayKey = clampToWeek(addDaysIso(newStart, span), weekDays);
+        return;
+      }
+    }
+
+    function renderJobMini(job, assignment) {
+      const card = document.createElement("div");
+      card.className = "mini job-chip";
+      card.draggable = true;
+
+      card.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", JSON.stringify({
+          type: "move-assignment",
+          assignmentId: assignment.id
+        }));
+        e.dataTransfer.effectAllowed = "move";
+      });
+
+      card.onclick = (ev) => {
+        ev.stopPropagation();
+        openJobDetails(job, assignment);
+      };
+
+      card.innerHTML = `
+        <div class="line">${escapeHtml(job.jobNumber)} , ${escapeHtml(job.partNumber)} , Op ${escapeHtml(job.opNumber)}</div>
+        <button class="icon-btn" title="Remove assignment">🗑</button>
+      `;
+
+      card.querySelector(".icon-btn").onclick = (ev) => {
+        ev.stopPropagation();
+        assignments = assignments.filter(a => a.id !== assignment.id);
+        renderBacklog();
+        renderBoard();
+      };
+
+      return card;
+    }
+
+    function renderRangeMini(range, resource, day, weekDays) {
+      const card = document.createElement("div");
+      card.className = `mini ${range.kind === "holiday" ? "holiday" : "leave"}`;
+      card.draggable = true;
+
+      // Drag move range
+      card.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", JSON.stringify({
+          type: "range",
+          rangeId: range.id
+        }));
+        e.dataTransfer.effectAllowed = "move";
+      });
+
+      card.onclick = (ev) => {
+        ev.stopPropagation();
+        openRangeDetails(range);
+      };
+
+      const label = (range.label && range.label.trim()) ? range.label.trim() : (range.kind === "leave" ? "Leave" : "Holiday");
+      const tag = (range.kind === "holiday") ? "HOL" : "LEAVE";
+
+      const line = document.createElement("div");
+      line.className = "line";
+      line.textContent = `${tag} , ${label}`;
+
+      const del = document.createElement("button");
+      del.className = "icon-btn";
+      del.type = "button";
+      del.title = "Delete";
+      del.textContent = "🗑";
+      del.onclick = (ev) => {
+        ev.stopPropagation();
+        dayRanges = dayRanges.filter(r => r.id !== range.id);
+        renderBoard();
+      };
+
+      card.appendChild(line);
+      card.appendChild(del);
+
+      // Resize handle for leave only
+      if (range.kind === "leave") {
+        const handle = document.createElement("div");
+        handle.className = "resize-handle";
+        handle.title = "Drag to stretch leave";
+        handle.draggable = false;
+        handle.addEventListener("dragstart", (e) => e.preventDefault());
+        handle.addEventListener("pointerdown", (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          startResizePointer(ev, range.id, range.resourceId, weekDays);
+        });
+        card.appendChild(handle);
+      }
+
+      return card;
+    }
+
+    function startResizePointer(ev, rangeId, resourceId, weekDays) {
+      const r = dayRanges.find(x => x.id === rangeId);
+      if (!r) return;
+
+      resizeState = { rangeId, resourceId };
+      ev.target.setPointerCapture(ev.pointerId);
+
+      document.body.style.userSelect = "none";
+      window.addEventListener("pointermove", onResizePointerMove);
+      window.addEventListener("pointerup", onResizePointerEnd, { once: true });
+
+      function onResizePointerMove(e) {
+        if (!resizeState) return;
+
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        if (!el) return;
+
+        const dz = el.closest ? el.closest(".dropzone") : null;
+        if (!dz) return;
+
+        const rid = dz.dataset.resourceId;
+        const sk = dz.dataset.shiftKey;
+        const dk = dz.dataset.dayKey;
+
+        if (rid !== resizeState.resourceId) return;
+        if (sk !== rangesRenderShift) return;
+
+        const rr = dayRanges.find(x => x.id === resizeState.rangeId);
+        if (!rr) return;
+
+        const target = clampToWeek(dk, weekDays);
+
+        if (target >= rr.startDayKey) {
+          rr.endDayKey = target;
+        } else {
+          rr.endDayKey = rr.startDayKey;
+          rr.startDayKey = target;
+        }
+
+        renderBoard();
+      }
+
+      function onResizePointerEnd() {
+        window.removeEventListener("pointermove", onResizePointerMove);
+        document.body.style.userSelect = "";
+        resizeState = null;
+        renderBoard();
+      }
+    }
+
+    // Add form
+    function openAddForm(resource, day) {
+      addCtx = { resource, day };
+
+      document.getElementById("addContext").textContent =
+        `Resource: ${resource.name} (${resource.id}), Date: ${day.label}`;
+
+      document.getElementById("addType").value = "holiday";
+      document.getElementById("holidayType").value = "public";
+      document.getElementById("addLabel").value = "";
+      document.getElementById("addNotes").value = "";
+      onAddTypeChange();
+
+      openOverlay("addOverlay");
+    }
+
+    function onAddTypeChange() {
+      const type = document.getElementById("addType").value;
+      document.getElementById("holidayType").disabled = (type !== "holiday");
+    }
+
+    function submitAdd() {
+      if (!addCtx) return;
+
+      const type = document.getElementById("addType").value;
+      const hType = document.getElementById("holidayType").value;
+      const labelRaw = (document.getElementById("addLabel").value || "").trim();
+      const notes = (document.getElementById("addNotes").value || "").trim();
+
+      if (type === "holiday" && !labelRaw) {
+        alert("Holiday label is required.");
+        return;
+      }
+
+      const finalLabel = labelRaw || (type === "leave" ? "Leave" : "Holiday");
+
+      dayRanges.push({
+        id: `R-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+        kind: type,
+        resourceId: addCtx.resource.id,
+        startDayKey: addCtx.day.key,
+        endDayKey: addCtx.day.key,
+        label: finalLabel,
+        holidayType: (type === "holiday" ? hType : null),
+        notes
+      });
+
+      closeOverlay("addOverlay");
+      addCtx = null;
+      renderBoard();
+    }
+
+    // Details
+    function openJobDetails(job, assignment) {
+      document.getElementById("detailsTitle").textContent = job.jobNumber;
+
+      const body = document.getElementById("detailsBody");
+      const rows = [];
+
+      if (assignment) {
+        const r = resources.find(x => x.id === assignment.resourceId);
+        rows.push(["Resource", r ? `${r.name} (${r.id})` : assignment.resourceId]);
+        rows.push(["Date", assignment.dayKey]);
+        rows.push(["Shift", assignment.shiftKey === "day" ? "Day" : "Night"]);
+      }
+
+      rows.push(["Job Number", job.jobNumber]);
+      rows.push(["Job Assembly Number", job.asmNumber]);
+      rows.push(["Job Operation", `${job.opNumber} , ${job.opDescription}`]);
+      rows.push(["Part Number", job.partNumber]);
+      rows.push(["Customer Number", job.customerNumber]);
+      rows.push(["Part Description", job.partDescription]);
+      rows.push(["Quantity", String(job.quantity)]);
+      rows.push(["Duration", `${job.durationHours} hours`]);
+
+      body.innerHTML = `
+        <div class="kv">
+          ${rows.map(([k,v]) => `
+            <div class="k">${escapeHtml(k)}</div>
+            <div class="v">${escapeHtml(v)}</div>
+          `).join("")}
+        </div>
+      `;
+
+      openOverlay("detailsOverlay");
+    }
+
+    function openRangeDetails(range) {
+      document.getElementById("detailsTitle").textContent = range.kind === "holiday" ? "Holiday" : "Leave";
+      const body = document.getElementById("detailsBody");
+      const rows = [
+        ["Type", range.kind.toUpperCase()],
+        ["Label", range.label || ""],
+        ["Range", `${range.startDayKey} to ${range.endDayKey}`],
+        ["Applies", "Day and Night"],
+        ["Notes", range.notes || ""]
+      ];
+      if (range.kind === "holiday") rows.splice(2, 0, ["Holiday Type", range.holidayType || ""]);
+
+      body.innerHTML = `
+        <div class="kv">
+          ${rows.map(([k,v]) => `
+            <div class="k">${escapeHtml(k)}</div>
+            <div class="v">${escapeHtml(v)}</div>
+          `).join("")}
+        </div>
+      `;
+      openOverlay("detailsOverlay");
+    }
+
+    function openOverlay(id) { document.getElementById(id).style.display = "flex"; }
+    function closeOverlay(id) { document.getElementById(id).style.display = "none"; }
+    function closeModalIfBackdrop(e, id) { if (e.target && e.target.id === id) closeOverlay(id); }
+
+    function autoFillDemo() {
+      const weekDays = getWeekMonToSun();
+      const shifts = SHIFTS;
+      const resList = resources;
+
+      let ji = 0;
+      resList.forEach(r => {
+        weekDays.forEach(d => {
+          shifts.forEach(s => {
+            if (ji >= jobs.length) return;
+            assignments.push({
+              id: `A-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+              jobId: jobs[ji].id,
+              resourceId: r.id,
+              dayKey: d.key,
+              shiftKey: s.key
+            });
+            ji++;
+          });
+        });
+      });
+
+      renderBacklog();
+      renderBoard();
+    }
+
+    function resetDemo() {
+      resources = structuredClone(demoResources);
+      jobs = structuredClone(demoJobs);
+      assignments = [];
+      dayRanges = [];
+      shiftFilter = "both";
+      deptFilter = "all";
+      document.getElementById("shiftFilter").value = "both";
+      document.getElementById("deptFilter").value = "all";
+      rangesRenderShift = "day";
+      init();
+    }
+
+    function saveChanges() {
+      // Example payload for later REST integration
+      const payload = {
+        version: APP_VERSION,
+        assignments: assignments.map(a => ({
+          assignmentId: a.id,
+          jobId: a.jobId,
+          resourceId: a.resourceId,
+          day: a.dayKey,
+          shift: a.shiftKey
+        })),
+        ranges: dayRanges.map(r => ({
+          rangeId: r.id,
+          resourceId: r.resourceId,
+          type: r.kind,
+          startDay: r.startDayKey,
+          endDay: r.endDayKey,
+          label: r.label,
+          holidayType: r.holidayType,
+          notes: r.notes
+        }))
+      };
+
+      console.log("Save payload:", payload);
+      alert("Saved (demo). Open console for payload.");
+    }
+
+    init();
+  </script>
+</body>
+</html>
