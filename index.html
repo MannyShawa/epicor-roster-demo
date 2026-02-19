@@ -1,93 +1,388 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Epicor Resource Rostering Tool</title>
-<style>
-body { font-family: Arial; background-color: #f4f6f9; margin: 20px; }
-h1 { margin-bottom: 20px; }
-table { width: 100%; border-collapse: collapse; background: white; }
-th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
-th { background-color: #2b579a; color: white; }
-input { width: 70px; padding: 5px; }
-.overloaded { background-color: #ffcccc; }
-.util-good { color: green; }
-.util-high { color: red; font-weight: bold; }
-button { margin-top: 15px; padding: 8px 15px; background-color: #2b579a; color: white; border: none; cursor: pointer; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Epicor, Resource Rostering</title>
+
+  <!-- Optional favicon -->
+  <link rel="icon" type="image/png" href="assets/epicor-favicon.png" />
+
+  <style>
+    :root{
+      /* Epicor-like theme variables */
+      --epicor-blue: #0B5CAB;
+      --epicor-blue-2: #0A4B8C;
+      --epicor-accent: #F28C00;
+      --bg: #F6F8FB;
+      --card: #FFFFFF;
+      --text: #111827;
+      --muted: #6B7280;
+      --line: #E5E7EB;
+      --danger-bg: #FDE2E2;
+      --danger-text: #B91C1C;
+      --good-text: #0E7A2D;
+      --shadow: 0 8px 22px rgba(17, 24, 39, 0.08);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+    }
+
+    .topbar {
+      background: linear-gradient(90deg, var(--epicor-blue), var(--epicor-blue-2));
+      color: #fff;
+      padding: 14px 22px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .logo {
+      height: 28px;
+      width: auto;
+      display: block;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+    }
+
+    .topbar .title-wrap {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .topbar .subtitle {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 22px auto;
+      padding: 0 16px 28px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .card-header .left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .card-header .heading {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .card-header .hint {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    thead th {
+      background: #F3F6FB;
+      color: #0F172A;
+      text-transform: none;
+      font-size: 12px;
+      letter-spacing: 0.2px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+      font-size: 13px;
+    }
+
+    tbody tr:hover {
+      background: #FAFBFF;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #0F172A;
+    }
+
+    input[type="number"] {
+      width: 92px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      outline: none;
+      font-size: 13px;
+      background: #fff;
+    }
+
+    input[type="number"]:focus {
+      border-color: rgba(11, 92, 171, 0.55);
+      box-shadow: 0 0 0 3px rgba(11, 92, 171, 0.12);
+    }
+
+    .overloaded {
+      background: var(--danger-bg);
+    }
+
+    .util-good { color: var(--good-text); font-weight: 700; }
+    .util-high { color: var(--danger-text); font-weight: 800; }
+
+    .actions {
+      padding: 14px 16px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: transform 0.04s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+
+    .btn:active { transform: translateY(1px); }
+
+    .btn-primary {
+      background: var(--epicor-blue);
+      color: white;
+      box-shadow: 0 10px 20px rgba(11, 92, 171, 0.18);
+    }
+
+    .btn-primary:hover { opacity: 0.95; }
+
+    .btn-accent {
+      background: var(--epicor-accent);
+      color: #111827;
+      box-shadow: 0 10px 20px rgba(242, 140, 0, 0.18);
+    }
+
+    .btn-accent:hover { opacity: 0.95; }
+
+    .note {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .kpi {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px 14px;
+    }
+
+    .kpi .label { font-size: 12px; color: var(--muted); }
+    .kpi .value { font-size: 18px; font-weight: 800; margin-top: 6px; }
+
+    @media (max-width: 900px) {
+      .kpis { grid-template-columns: 1fr; }
+      input[type="number"] { width: 80px; }
+    }
+  </style>
 </head>
+
 <body>
+  <div class="topbar">
+    <!-- Use ONE of the below -->
+    <img class="logo" src="assets/epicor-logo.svg" alt="Epicor" onerror="this.style.display='none'" />
+    <!-- If you are using PNG instead, replace line above with:
+    <img class="logo" src="assets/epicor-logo.png" alt="Epicor" onerror="this.style.display='none'" />
+    -->
 
-<h1>Resource Rostering Dashboard</h1>
+    <div class="title-wrap">
+      <h1>Resource Rostering Dashboard</h1>
+      <div class="subtitle">Demo mode, hardcoded data, REST integration later</div>
+    </div>
+  </div>
 
-<table id="rosterTable">
-<thead>
-<tr>
-<th>ID</th>
-<th>Name</th>
-<th>Group</th>
-<th>Std Hours</th>
-<th>Allocated</th>
-<th>Available</th>
-<th>Utilization %</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
+  <div class="container">
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Total resources</div>
+        <div class="value" id="kpiResources">0</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Overloaded resources</div>
+        <div class="value" id="kpiOverloaded">0</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Avg utilization</div>
+        <div class="value" id="kpiAvgUtil">0%</div>
+      </div>
+    </div>
 
-<button onclick="saveChanges()">Save Changes</button>
+    <div class="card">
+      <div class="card-header">
+        <div class="left">
+          <div class="heading">Roster</div>
+          <div class="hint">Edit Std Hours or Allocated, the dashboard recalculates instantly</div>
+        </div>
+        <span class="pill" id="modePill">Mode, Demo</span>
+      </div>
 
-<script>
-const resources = [
-{ id: "EMP001", name: "John Smith", group: "Assembly", stdHours: 40, allocated: 32 },
-{ id: "EMP002", name: "Sarah Lee", group: "Welding", stdHours: 40, allocated: 45 },
-{ id: "EMP003", name: "Michael Tran", group: "Paint", stdHours: 38, allocated: 30 }
-];
+      <table id="rosterTable">
+        <thead>
+          <tr>
+            <th style="width:120px;">ID</th>
+            <th>Name</th>
+            <th>Group</th>
+            <th style="width:140px;">Std Hours</th>
+            <th style="width:140px;">Allocated</th>
+            <th style="width:120px;">Available</th>
+            <th style="width:140px;">Utilization %</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
 
-function renderTable() {
-const tbody = document.querySelector("#rosterTable tbody");
-tbody.innerHTML = "";
+      <div class="actions">
+        <button class="btn btn-primary" onclick="saveChanges()">Save Changes</button>
+        <button class="btn btn-accent" onclick="resetDemo()">Reset Demo</button>
+        <span class="note">Save currently logs to console, later we POST to Epicor REST.</span>
+      </div>
+    </div>
+  </div>
 
-resources.forEach((res, index) => {
-const available = res.stdHours - res.allocated;
-const utilization = ((res.allocated / res.stdHours) * 100).toFixed(1);
-const row = document.createElement("tr");
+  <script>
+    const demoResources = [
+      { id: "EMP001", name: "John Smith", group: "Assembly", stdHours: 40, allocated: 32 },
+      { id: "EMP002", name: "Sarah Lee", group: "Welding",  stdHours: 40, allocated: 45 },
+      { id: "EMP003", name: "Michael Tran", group: "Paint",   stdHours: 38, allocated: 30 }
+    ];
 
-if (res.allocated > res.stdHours) {
-row.classList.add("overloaded");
-}
+    let resources = structuredClone(demoResources);
 
-row.innerHTML = `
-<td>${res.id}</td>
-<td>${res.name}</td>
-<td>${res.group}</td>
-<td><input type="number" value="${res.stdHours}" onchange="updateStd(${index}, this.value)" /></td>
-<td><input type="number" value="${res.allocated}" onchange="updateAllocated(${index}, this.value)" /></td>
-<td>${available}</td>
-<td class="${utilization > 100 ? 'util-high' : 'util-good'}">${utilization}%</td>
-`;
+    function renderTable() {
+      const tbody = document.querySelector("#rosterTable tbody");
+      tbody.innerHTML = "";
 
-tbody.appendChild(row);
-});
-}
+      resources.forEach((res, index) => {
+        const std = Number(res.stdHours) || 0;
+        const alloc = Number(res.allocated) || 0;
+        const available = std - alloc;
+        const utilization = std > 0 ? ((alloc / std) * 100).toFixed(1) : "0.0";
 
-function updateStd(index, value) {
-resources[index].stdHours = parseFloat(value);
-renderTable();
-}
+        const row = document.createElement("tr");
+        if (alloc > std) row.classList.add("overloaded");
 
-function updateAllocated(index, value) {
-resources[index].allocated = parseFloat(value);
-renderTable();
-}
+        row.innerHTML = `
+          <td><span class="pill">${escapeHtml(res.id)}</span></td>
+          <td>${escapeHtml(res.name)}</td>
+          <td>${escapeHtml(res.group)}</td>
+          <td><input type="number" min="0" step="0.5" value="${std}" onchange="updateStd(${index}, this.value)" /></td>
+          <td><input type="number" min="0" step="0.5" value="${alloc}" onchange="updateAllocated(${index}, this.value)" /></td>
+          <td>${available}</td>
+          <td class="${Number(utilization) > 100 ? "util-high" : "util-good"}">${utilization}%</td>
+        `;
+        tbody.appendChild(row);
+      });
 
-function saveChanges() {
-console.log("Updated Data:", resources);
-alert("Demo Save Completed. Later this will POST to Epicor REST.");
-}
+      renderKpis();
+    }
 
-renderTable();
-</script>
+    function renderKpis() {
+      const total = resources.length;
+      const overloaded = resources.filter(r => Number(r.allocated) > Number(r.stdHours)).length;
 
+      const avg = total === 0 ? 0 : resources.reduce((sum, r) => {
+        const std = Number(r.stdHours) || 0;
+        const alloc = Number(r.allocated) || 0;
+        return sum + (std > 0 ? (alloc / std) * 100 : 0);
+      }, 0) / total;
+
+      document.getElementById("kpiResources").textContent = String(total);
+      document.getElementById("kpiOverloaded").textContent = String(overloaded);
+      document.getElementById("kpiAvgUtil").textContent = `${avg.toFixed(1)}%`;
+    }
+
+    function updateStd(index, value) {
+      resources[index].stdHours = Number(value);
+      renderTable();
+    }
+
+    function updateAllocated(index, value) {
+      resources[index].allocated = Number(value);
+      renderTable();
+    }
+
+    function saveChanges() {
+      console.log("Updated Data:", resources);
+      alert("Demo Save Completed. Later this will POST to Epicor REST.");
+    }
+
+    function resetDemo() {
+      resources = structuredClone(demoResources);
+      renderTable();
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    renderTable();
+  </script>
 </body>
 </html>
