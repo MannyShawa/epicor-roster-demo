@@ -152,17 +152,14 @@
       background: #fff;
     }
 
-    /* grid columns set dynamically inline from JS */
-    .grid{
-      display: grid;
-    }
+    .grid{ display: grid; }
 
     .cell{
       border-right: 1px solid var(--grid);
       border-bottom: 1px solid var(--grid);
       padding: 10px;
       background: #fff;
-      min-height: 98px;
+      min-height: 104px;
     }
 
     .cell.header{
@@ -252,7 +249,7 @@
 
     .dropzone{
       border-radius: 10px;
-      min-height: 78px;
+      min-height: 84px;
       padding: 8px;
       border: 1px dashed rgba(0, 140, 248, 0.35);
       background: rgba(0, 140, 248, 0.03);
@@ -280,13 +277,31 @@
       margin-bottom: 4px;
     }
 
-    .tiny-link{
+    .hint{
       font-size: 11px;
-      color: var(--bright-blue);
-      text-decoration: underline;
+      color: var(--muted);
+    }
+
+    /* plus button */
+    .plus-btn{
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      border: 1px solid rgba(0, 140, 248, 0.30);
+      background: rgba(0, 140, 248, 0.08);
+      color: #0f172a;
+      font-weight: 900;
+      font-size: 16px;
+      line-height: 18px;
       cursor: pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
       user-select: none;
-      white-space: nowrap;
+    }
+    .plus-btn:hover{
+      background: rgba(0, 140, 248, 0.12);
+      border-color: rgba(0, 140, 248, 0.45);
     }
 
     /* Small scheduled cards, one line */
@@ -332,12 +347,7 @@
     .mini.holiday{
       border-color: rgba(5, 60, 85, 0.22);
       background: rgba(252, 221, 0, 0.32);
-      cursor: pointer;
-    }
-
-    .hint{
-      font-size: 11px;
-      color: var(--muted);
+      cursor: grab;
     }
 
     .footer-note{
@@ -419,7 +429,7 @@
     <img class="logo" src="assets/epicor-logo.svg" alt="Epicor" onerror="this.style.display='none'"/>
     <div class="title-wrap">
       <h1>Weekly Resource Calendar</h1>
-      <div class="subtitle">Monday to Sunday, split by shift, drag jobs to assign, click a job for details</div>
+      <div class="subtitle">Holiday applies to both shifts, drag a holiday onto another day to extend it</div>
     </div>
   </div>
 
@@ -450,7 +460,7 @@
         <div class="card-header">
           <div>
             <div class="heading">Schedule, weekly</div>
-            <div class="hint">Use Shift Filter to show Day, Night or Both</div>
+            <div class="hint">Shift Filter controls visible shift columns</div>
           </div>
           <div class="controls">
             <label style="font-size:12px; font-weight:900; color:#111827;">Shift Filter</label>
@@ -468,7 +478,7 @@
         </div>
 
         <div class="footer-note">
-          Next upgrade: time slots inside each shift, plus capacity warnings.
+          Tip: drag a holiday card onto another day cell to extend its end date.
         </div>
       </div>
     </div>
@@ -478,7 +488,7 @@
   <div class="modal-overlay" id="modalOverlay" onclick="closeModalIfBackdrop(event)">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <div class="modal-title" id="modalTitle">Job Details</div>
+        <div class="modal-title" id="modalTitle">Details</div>
         <button class="btn btn-secondary" onclick="closeModal()">Close</button>
       </div>
       <div class="modal-body" id="modalBody"></div>
@@ -497,8 +507,7 @@
       { id: "EMP004", name: "Aisha Khan", group: "Assembly",  photo: "assets/employees/EMP004.jpg" }
     ];
 
-    // required detail fields:
-    // Job Number, Part Number, Customer Number, Part Description, Quantity and duration
+    // Job fields: Job Number, Part Number, Customer Number, Part Description, Quantity, Duration
     const demoJobs = [
       { kind: "job", jobNumber: "J-10021", partNumber: "PN-AX12", customerNumber: "CUST-1000", partDescription: "Switchboard enclosure", quantity: 2, durationHours: 6 },
       { kind: "job", jobNumber: "J-10034", partNumber: "PN-WR08", customerNumber: "CUST-1042", partDescription: "Panel wiring kit", quantity: 4, durationHours: 4 },
@@ -516,9 +525,13 @@
     let resources = structuredClone(demoResources);
     let backlogJobs = structuredClone(demoJobs);
 
-    // schedule cellKey -> array of items (jobs, leave, holiday)
+    // schedule cellKey -> array of items (jobs, leave)
     // cellKey format: resourceId|YYYY-MM-DD|shiftKey
     let schedule = {};
+
+    // holidayRanges: apply to whole day (both shifts)
+    // { id, resourceId, startDayKey, endDayKey, label }
+    let holidayRanges = [];
 
     let shiftFilter = "both"; // both, day, night
 
@@ -542,7 +555,6 @@
       }
       return days;
     }
-
     const weekDays = getWeekMonToSun();
 
     function makeCellKey(resourceId, dayKey, shiftKey) {
@@ -563,6 +575,24 @@
     function setShiftFilter(val) {
       shiftFilter = val;
       renderBoard();
+    }
+
+    // ---------- Holiday helpers ----------
+    function inRange(dayKey, startKey, endKey) {
+      return dayKey >= startKey && dayKey <= endKey;
+    }
+
+    function holidayFor(resourceId, dayKey) {
+      return holidayRanges.filter(h => h.resourceId === resourceId && inRange(dayKey, h.startDayKey, h.endDayKey));
+    }
+
+    function upsertHolidayExtend(holidayId, targetDayKey) {
+      const h = holidayRanges.find(x => x.id === holidayId);
+      if (!h) return;
+      const minKey = (targetDayKey < h.startDayKey) ? targetDayKey : h.startDayKey;
+      const maxKey = (targetDayKey > h.endDayKey) ? targetDayKey : h.endDayKey;
+      h.startDayKey = minKey;
+      h.endDayKey = maxKey;
     }
 
     // ---------- Rendering ----------
@@ -592,7 +622,6 @@
 
       const visibleShifts = getVisibleShifts();
       const columnsPerDay = visibleShifts.length;
-      const totalColumns = 1 + (7 * columnsPerDay);
 
       const grid = document.createElement("div");
       grid.className = "grid";
@@ -629,7 +658,6 @@
 
       // Resource rows
       resources.forEach(r => {
-        // resource cell spans 2 header rows already handled, now just row cells
         const rc = document.createElement("div");
         rc.className = "cell resource";
 
@@ -654,7 +682,6 @@
         rc.appendChild(row);
         grid.appendChild(rc);
 
-        // shift cells for each day
         weekDays.forEach(d => {
           visibleShifts.forEach(s => {
             const cellKey = makeCellKey(r.id, d.key, s.key);
@@ -665,6 +692,9 @@
             const dz = document.createElement("div");
             dz.className = `dropzone${d.isWeekend ? " weekend" : ""}`;
             dz.dataset.cellKey = cellKey;
+            dz.dataset.resourceId = r.id;
+            dz.dataset.dayKey = d.key;
+            dz.dataset.shiftKey = s.key;
 
             const tools = document.createElement("div");
             tools.className = "cell-tools";
@@ -673,13 +703,15 @@
             left.className = "hint";
             left.textContent = "";
 
-            const menu = document.createElement("div");
-            menu.className = "tiny-link";
-            menu.textContent = "Add";
-            menu.onclick = () => openCellMenu(cellKey, r, d, s);
+            const plus = document.createElement("button");
+            plus.className = "plus-btn";
+            plus.type = "button";
+            plus.title = "Add leave or holiday";
+            plus.textContent = "+";
+            plus.onclick = () => openCellMenu(r, d);
 
             tools.appendChild(left);
-            tools.appendChild(menu);
+            tools.appendChild(plus);
             dz.appendChild(tools);
 
             dz.addEventListener("dragover", (e) => {
@@ -692,18 +724,23 @@
               dz.classList.remove("over");
               const payload = safeParse(e.dataTransfer.getData("text/plain"));
               if (!payload) return;
-              handleDrop(payload, cellKey);
+              handleDrop(payload, cellKey, r.id, d.key);
             });
+
+            // If a holiday applies to this resource and day, show it in BOTH shifts
+            // For "both shifts", we render the holiday card in every visible shift cell that day.
+            const holidays = holidayFor(r.id, d.key);
+            holidays.forEach(h => dz.appendChild(renderHolidayMini(h, r, d, s)));
 
             const items = getCellItems(cellKey);
 
-            if (items.length === 0) {
+            if (holidays.length === 0 && items.length === 0) {
               const hint = document.createElement("div");
               hint.className = "hint";
               hint.textContent = "Drop job here";
               dz.appendChild(hint);
             } else {
-              items.forEach((it, idx) => dz.appendChild(renderCellItem(it, cellKey, idx, r, d, s)));
+              items.forEach((it, idx) => dz.appendChild(renderJobMini(it, cellKey, idx, r, d, s)));
             }
 
             c.appendChild(dz);
@@ -723,7 +760,7 @@
 
       card.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", JSON.stringify({
-          type: "item",
+          type: "job",
           from: "backlog",
           jobNumber: job.jobNumber,
           item: job
@@ -745,27 +782,14 @@
       return card;
     }
 
-    // Cell item, small one line card
-    function renderCellItem(item, cellKey, indexInCell, resource, day, shift) {
+    function renderJobMini(item, cellKey, indexInCell, resource, day, shift) {
       const card = document.createElement("div");
-
-      if (item.kind === "leave" || item.kind === "holiday") {
-        card.className = `mini ${item.kind}`;
-        card.innerHTML = `
-          <div class="line">${escapeHtml(item.label)}</div>
-          <div class="tag">${escapeHtml(item.kind.toUpperCase())}</div>
-        `;
-        card.onclick = () => openDetails(item, { resource, day, shift, cellKey });
-        return card;
-      }
-
-      // Job
       card.className = "mini";
       card.draggable = true;
 
       card.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", JSON.stringify({
-          type: "item",
+          type: "job",
           from: "scheduled",
           jobNumber: item.jobNumber,
           sourceCellKey: cellKey,
@@ -787,15 +811,54 @@
       return card;
     }
 
+    // Holiday mini is draggable, dropping it onto another day extends the range
+    function renderHolidayMini(h, resource, day, shift) {
+      const card = document.createElement("div");
+      card.className = "mini holiday";
+      card.draggable = true;
+
+      card.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", JSON.stringify({
+          type: "holiday",
+          holidayId: h.id,
+          resourceId: h.resourceId,
+          anchorDayKey: day.key
+        }));
+        e.dataTransfer.effectAllowed = "move";
+      });
+
+      card.onclick = (ev) => {
+        ev.stopPropagation();
+        openDetails({ kind: "holiday", label: h.label, startDayKey: h.startDayKey, endDayKey: h.endDayKey }, { resource, day, shift });
+      };
+
+      const rangeText = (h.startDayKey === h.endDayKey) ? "HOLIDAY" : "HOLIDAY RANGE";
+      card.innerHTML = `
+        <div class="line">${escapeHtml(h.label)}</div>
+        <div class="tag">${escapeHtml(rangeText)}</div>
+      `;
+      return card;
+    }
+
     // ---------- Drag drop logic ----------
-    function handleDrop(payload, targetCellKey) {
-      if (!payload || payload.type !== "item") return;
+    function handleDrop(payload, targetCellKey, targetResourceId, targetDayKey) {
+      if (!payload) return;
+
+      // Extend holiday by dragging it onto another day for the SAME resource
+      if (payload.type === "holiday") {
+        if (payload.resourceId !== targetResourceId) return;
+        upsertHolidayExtend(payload.holidayId, targetDayKey);
+        renderBoard();
+        return;
+      }
+
+      if (payload.type !== "job") return;
 
       if (payload.from === "backlog") {
         backlogJobs = backlogJobs.filter(j => j.jobNumber !== payload.jobNumber);
         getCellItems(targetCellKey).push(payload.item);
-        renderBoard();
         renderBacklog();
+        renderBoard();
         return;
       }
 
@@ -819,36 +882,54 @@
       }
     }
 
-    // ---------- Leave and holiday ----------
-    function openCellMenu(cellKey, resource, day, shift) {
+    // ---------- Add menu ----------
+    // Holiday applies to whole day (both shifts), so it is stored as a range by resource and day.
+    function openCellMenu(resource, day) {
       const choice = prompt(
-        "Type: leave, holiday, clear, cancel\n\nleave = add leave for this resource/day/shift\nholiday = add holiday block for this resource/day/shift\nclear = remove everything from this cell",
-        "leave"
+        "Type: leave, holiday, clear, cancel\n\nleave = add leave in the selected cell only\nholiday = add holiday for the whole day (both shifts)\nclear = remove jobs and leave for the selected shift cell\ncancel = do nothing",
+        "holiday"
       );
-
       if (!choice) return;
 
       const c = choice.trim().toLowerCase();
       if (c === "cancel") return;
 
-      if (c === "clear") {
-        delete schedule[cellKey];
+      if (c === "holiday") {
+        const label = prompt("Holiday label", "Public Holiday");
+        if (!label) return;
+
+        holidayRanges.push({
+          id: `H-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+          resourceId: resource.id,
+          startDayKey: day.key,
+          endDayKey: day.key,
+          label: label
+        });
         renderBoard();
         return;
       }
 
       if (c === "leave") {
+        // Leave is shift-specific, user will click plus inside a shift cell, but prompt is global.
+        // To keep UI simple, we add leave to DAY shift by default when both are visible,
+        // or to the currently visible shift if filtered.
         const label = prompt("Leave label", "Leave");
         if (!label) return;
+
+        const visible = getVisibleShifts();
+        const targetShift = visible[0]?.key || "day";
+        const cellKey = makeCellKey(resource.id, day.key, targetShift);
         getCellItems(cellKey).unshift({ kind: "leave", label: label, notes: "Leave" });
         renderBoard();
         return;
       }
 
-      if (c === "holiday") {
-        const label = prompt("Holiday label", "Public Holiday");
-        if (!label) return;
-        getCellItems(cellKey).unshift({ kind: "holiday", label: label, notes: "Holiday" });
+      if (c === "clear") {
+        // clear prompt cannot know shift cell, so we just clear both shifts for that day
+        SHIFTS.forEach(s => {
+          const ck = makeCellKey(resource.id, day.key, s.key);
+          delete schedule[ck];
+        });
         renderBoard();
         return;
       }
@@ -864,7 +945,7 @@
 
       const title = item.kind === "job"
         ? `${item.jobNumber}`
-        : item.label;
+        : (item.label || "Details");
 
       document.getElementById("modalTitle").textContent = title;
 
@@ -880,9 +961,11 @@
         rows.push(["Part Description", item.partDescription || ""]);
         rows.push(["Quantity", String(item.quantity ?? "")]);
         rows.push(["Duration", `${item.durationHours ?? ""} hours`]);
-      } else {
-        rows.push(["Type", (item.kind || "").toUpperCase()]);
-        rows.push(["Notes", item.notes || ""]);
+      } else if (item.kind === "holiday") {
+        rows.push(["Type", "HOLIDAY"]);
+        if (item.startDayKey && item.endDayKey) rows.push(["Range", `${item.startDayKey} to ${item.endDayKey}`]);
+      } else if (item.kind === "leave") {
+        rows.push(["Type", "LEAVE"]);
       }
 
       const body = document.getElementById("modalBody");
@@ -922,12 +1005,13 @@
         getCellItems(ck).push(backlogJobs.shift());
         i++;
       }
-
       render();
     }
 
     function saveChanges() {
       const out = [];
+
+      // jobs and leave
       Object.keys(schedule).forEach(cellKey => {
         const [resourceId, dayKey, shiftKey] = cellKey.split("|");
         schedule[cellKey].forEach(it => {
@@ -947,6 +1031,18 @@
         });
       });
 
+      // holidays (whole-day)
+      holidayRanges.forEach(h => {
+        out.push({
+          resourceId: h.resourceId,
+          kind: "holiday",
+          startDay: h.startDayKey,
+          endDay: h.endDayKey,
+          label: h.label,
+          appliesTo: "both_shifts"
+        });
+      });
+
       console.log("Schedule payload:", out);
       alert("Saved (demo). Check console for schedule payload.");
     }
@@ -955,6 +1051,7 @@
       resources = structuredClone(demoResources);
       backlogJobs = structuredClone(demoJobs);
       schedule = {};
+      holidayRanges = [];
       shiftFilter = "both";
       document.getElementById("shiftFilter").value = "both";
       render();
