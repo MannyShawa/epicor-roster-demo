@@ -13,14 +13,12 @@
       --light-gray: #eef2f5;
       --bright-blue: #008cf8;
       --lemon: #fcdd00;
-      --dark-red: #a00d1c;
-      --aqua-40: #d0ede4;
+      --grid: #d7dde3;
 
       --bg: #f7f9fb;
       --card: #ffffff;
       --text: #0f172a;
       --muted: #6b7280;
-      --grid: #d7dde3;
       --shadow: 0 10px 24px rgba(17, 24, 39, 0.08);
       --radius: 14px;
     }
@@ -42,11 +40,11 @@
     .title-wrap h1{ margin:0; font-size: 18px; font-weight: 800; letter-spacing: 0.2px; }
     .title-wrap .subtitle{ font-size: 12px; opacity: 0.9; }
 
-    .container{ max-width: 1550px; margin: 16px auto; padding: 0 16px 22px; }
+    .container{ max-width: 1650px; margin: 16px auto; padding: 0 16px 22px; }
 
     .layout{
       display: grid;
-      grid-template-columns: 340px 1fr;
+      grid-template-columns: 360px 1fr;
       gap: 12px;
       align-items: start;
     }
@@ -89,6 +87,18 @@
     .btn-primary{ background: var(--bright-blue); color: #fff; }
     .btn-secondary{ background: var(--light-gray); color: var(--text); border: 1px solid #dde3ea; }
     .btn-warn{ background: var(--lemon); color: #111827; }
+
+    .select{
+      border: 1px solid #dde3ea;
+      background: #fff;
+      border-radius: 10px;
+      padding: 9px 10px;
+      font-weight: 900;
+      font-size: 12px;
+      color: var(--text);
+      outline: none;
+      cursor: pointer;
+    }
 
     /* Backlog jobs */
     .backlog{
@@ -135,16 +145,16 @@
     }
 
     .excel{
-      min-width: 1200px;
+      min-width: 1400px;
       border: 1px solid var(--grid);
       border-radius: 12px;
       overflow: hidden;
       background: #fff;
     }
 
+    /* grid columns set dynamically inline from JS */
     .grid{
       display: grid;
-      grid-template-columns: 280px repeat(7, minmax(150px, 1fr));
     }
 
     .cell{
@@ -171,6 +181,22 @@
       background: rgba(252, 221, 0, 0.22);
     }
 
+    .cell.subheader{
+      background: #f3f6f9;
+      font-weight: 900;
+      font-size: 11px;
+      color: #0f172a;
+      min-height: unset;
+      padding: 8px 10px;
+      position: sticky;
+      top: 36px;
+      z-index: 3;
+    }
+
+    .cell.subheader.weekend{
+      background: rgba(252, 221, 0, 0.16);
+    }
+
     .cell.resource{
       background: #fbfcfe;
       position: sticky;
@@ -183,8 +209,16 @@
       position: sticky;
       top: 0;
       left: 0;
-      z-index: 4;
+      z-index: 5;
       background: var(--light-gray);
+    }
+
+    .corner2{
+      position: sticky;
+      top: 36px;
+      left: 0;
+      z-index: 5;
+      background: #f3f6f9;
     }
 
     .resource-row{
@@ -269,31 +303,6 @@
     }
     .mini:active{ cursor: grabbing; }
 
-    .mini.high{
-      border-color: rgba(160, 13, 28, 0.28);
-      background: rgba(255, 136, 115, 0.18);
-    }
-    .mini.med{
-      border-color: rgba(5, 60, 85, 0.20);
-      background: rgba(208, 237, 228, 0.65);
-    }
-    .mini.low{
-      border-color: rgba(5, 60, 85, 0.14);
-      background: rgba(238, 242, 245, 0.95);
-    }
-
-    .mini.leave{
-      border-color: rgba(160, 13, 28, 0.25);
-      background: rgba(252, 221, 0, 0.22);
-      cursor: pointer;
-    }
-
-    .mini.holiday{
-      border-color: rgba(5, 60, 85, 0.22);
-      background: rgba(252, 221, 0, 0.32);
-      cursor: pointer;
-    }
-
     .mini .line{
       font-size: 11.5px;
       font-weight: 900;
@@ -312,6 +321,18 @@
       padding: 2px 6px;
       background: rgba(255,255,255,0.6);
       flex: 0 0 auto;
+    }
+
+    .mini.leave{
+      border-color: rgba(160, 13, 28, 0.25);
+      background: rgba(252, 221, 0, 0.22);
+      cursor: pointer;
+    }
+
+    .mini.holiday{
+      border-color: rgba(5, 60, 85, 0.22);
+      background: rgba(252, 221, 0, 0.32);
+      cursor: pointer;
     }
 
     .hint{
@@ -339,7 +360,7 @@
       z-index: 50;
     }
     .modal{
-      width: 520px;
+      width: 560px;
       max-width: 100%;
       background: #fff;
       border-radius: 16px;
@@ -371,12 +392,12 @@
     }
     .kv{
       display:grid;
-      grid-template-columns: 140px 1fr;
+      grid-template-columns: 170px 1fr;
       gap: 8px 10px;
       align-items: start;
     }
-    .k{ color: var(--muted); font-weight: 800; }
-    .v{ font-weight: 800; }
+    .k{ color: var(--muted); font-weight: 900; }
+    .v{ font-weight: 900; }
     .modal-actions{
       padding: 12px 14px;
       border-top: 1px solid #e5e7eb;
@@ -388,7 +409,7 @@
 
     @media (max-width: 1100px){
       .layout{ grid-template-columns: 1fr; }
-      .excel{ min-width: 980px; }
+      .excel{ min-width: 1100px; }
     }
   </style>
 </head>
@@ -398,7 +419,7 @@
     <img class="logo" src="assets/epicor-logo.svg" alt="Epicor" onerror="this.style.display='none'"/>
     <div class="title-wrap">
       <h1>Weekly Resource Calendar</h1>
-      <div class="subtitle">Drag jobs to assign, multiple jobs per day, weekends highlighted, add leave and holiday, click a card for details</div>
+      <div class="subtitle">Monday to Sunday, split by shift, drag jobs to assign, click a job for details</div>
     </div>
   </div>
 
@@ -409,7 +430,7 @@
         <div class="card-header">
           <div>
             <div class="heading">Job Backlog</div>
-            <div class="hint">Drag a job onto a resource and day</div>
+            <div class="hint">Drag a job onto a resource, day and shift</div>
           </div>
           <div class="controls">
             <button class="btn btn-secondary" onclick="resetDemo()">Reset</button>
@@ -420,7 +441,7 @@
         <div class="backlog" id="backlog"></div>
 
         <div class="footer-note">
-          Demo mode only, later this becomes Epicor REST reads and updates.
+          Demo mode only. Later this becomes Epicor REST reads and updates.
         </div>
       </div>
 
@@ -428,10 +449,16 @@
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="heading">Schedule, Monday to Sunday</div>
-            <div class="hint">Cell menu, Add leave, Add holiday, Clear cell, drop jobs to stack them</div>
+            <div class="heading">Schedule, weekly</div>
+            <div class="hint">Use Shift Filter to show Day, Night or Both</div>
           </div>
           <div class="controls">
+            <label style="font-size:12px; font-weight:900; color:#111827;">Shift Filter</label>
+            <select id="shiftFilter" class="select" onchange="setShiftFilter(this.value)">
+              <option value="both">Day and Night</option>
+              <option value="day">Day only</option>
+              <option value="night">Night only</option>
+            </select>
             <button class="btn btn-primary" onclick="saveChanges()">Save Changes</button>
           </div>
         </div>
@@ -441,7 +468,7 @@
         </div>
 
         <div class="footer-note">
-          Next upgrade, time slots (AM, PM, hourly), plus conflict checks and capacity bars.
+          Next upgrade: time slots inside each shift, plus capacity warnings.
         </div>
       </div>
     </div>
@@ -451,7 +478,7 @@
   <div class="modal-overlay" id="modalOverlay" onclick="closeModalIfBackdrop(event)">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <div class="modal-title" id="modalTitle">Details</div>
+        <div class="modal-title" id="modalTitle">Job Details</div>
         <button class="btn btn-secondary" onclick="closeModal()">Close</button>
       </div>
       <div class="modal-body" id="modalBody"></div>
@@ -470,20 +497,30 @@
       { id: "EMP004", name: "Aisha Khan", group: "Assembly",  photo: "assets/employees/EMP004.jpg" }
     ];
 
+    // required detail fields:
+    // Job Number, Part Number, Customer Number, Part Description, Quantity and duration
     const demoJobs = [
-      { kind: "job", jobId: "J-10021", title: "Switchboard build", hours: 6, priority: "High", customer: "Acme", notes: "Frame and wiring" },
-      { kind: "job", jobId: "J-10034", title: "Panel wiring", hours: 4, priority: "Med", customer: "Northwind", notes: "Follow wiring diagram" },
-      { kind: "job", jobId: "J-10040", title: "Factory test", hours: 3, priority: "Low", customer: "Acme", notes: "FAT checklist" },
-      { kind: "job", jobId: "J-10055", title: "Cut, drill, bend", hours: 5, priority: "High", customer: "Contoso", notes: "Sheet metal prep" },
-      { kind: "job", jobId: "J-10080", title: "Powder coat prep", hours: 4, priority: "Med", customer: "Fabrikam", notes: "Masking and prep" },
-      { kind: "job", jobId: "J-10110", title: "Label and pack", hours: 2, priority: "Low", customer: "Tailspin", notes: "Pack list and labels" }
+      { kind: "job", jobNumber: "J-10021", partNumber: "PN-AX12", customerNumber: "CUST-1000", partDescription: "Switchboard enclosure", quantity: 2, durationHours: 6 },
+      { kind: "job", jobNumber: "J-10034", partNumber: "PN-WR08", customerNumber: "CUST-1042", partDescription: "Panel wiring kit", quantity: 4, durationHours: 4 },
+      { kind: "job", jobNumber: "J-10040", partNumber: "PN-FAT01", customerNumber: "CUST-1000", partDescription: "Factory acceptance test", quantity: 1, durationHours: 3 },
+      { kind: "job", jobNumber: "J-10055", partNumber: "PN-SM22", customerNumber: "CUST-1108", partDescription: "Sheet metal set", quantity: 6, durationHours: 5 },
+      { kind: "job", jobNumber: "J-10080", partNumber: "PN-PC09", customerNumber: "CUST-1205", partDescription: "Powder coat prep batch", quantity: 3, durationHours: 4 },
+      { kind: "job", jobNumber: "J-10110", partNumber: "PN-PK02", customerNumber: "CUST-1310", partDescription: "Packaging and labels", quantity: 10, durationHours: 2 }
+    ];
+
+    const SHIFTS = [
+      { key: "day", label: "Day" },
+      { key: "night", label: "Night" }
     ];
 
     let resources = structuredClone(demoResources);
     let backlogJobs = structuredClone(demoJobs);
 
     // schedule cellKey -> array of items (jobs, leave, holiday)
+    // cellKey format: resourceId|YYYY-MM-DD|shiftKey
     let schedule = {};
+
+    let shiftFilter = "both"; // both, day, night
 
     // ---------- Week helpers ----------
     function getWeekMonToSun() {
@@ -508,13 +545,24 @@
 
     const weekDays = getWeekMonToSun();
 
-    function makeCellKey(resourceId, dayKey) {
-      return `${resourceId}|${dayKey}`;
+    function makeCellKey(resourceId, dayKey, shiftKey) {
+      return `${resourceId}|${dayKey}|${shiftKey}`;
     }
 
     function getCellItems(cellKey) {
       if (!schedule[cellKey]) schedule[cellKey] = [];
       return schedule[cellKey];
+    }
+
+    function getVisibleShifts() {
+      if (shiftFilter === "day") return [SHIFTS[0]];
+      if (shiftFilter === "night") return [SHIFTS[1]];
+      return SHIFTS;
+    }
+
+    function setShiftFilter(val) {
+      shiftFilter = val;
+      renderBoard();
     }
 
     // ---------- Rendering ----------
@@ -542,10 +590,15 @@
       const board = document.getElementById("board");
       board.innerHTML = "";
 
+      const visibleShifts = getVisibleShifts();
+      const columnsPerDay = visibleShifts.length;
+      const totalColumns = 1 + (7 * columnsPerDay);
+
       const grid = document.createElement("div");
       grid.className = "grid";
+      grid.style.gridTemplateColumns = `280px repeat(${7 * columnsPerDay}, minmax(140px, 1fr))`;
 
-      // Corner and day headers
+      // Header row 1: day labels spanning shift columns
       const corner = document.createElement("div");
       corner.className = "cell header corner";
       corner.textContent = "Resource";
@@ -554,19 +607,37 @@
       weekDays.forEach(d => {
         const h = document.createElement("div");
         h.className = `cell header${d.isWeekend ? " weekend" : ""}`;
+        h.style.gridColumn = `span ${columnsPerDay}`;
         h.textContent = d.label;
         grid.appendChild(h);
       });
 
+      // Header row 2: shift labels
+      const corner2 = document.createElement("div");
+      corner2.className = "cell subheader corner2";
+      corner2.textContent = " ";
+      grid.appendChild(corner2);
+
+      weekDays.forEach(d => {
+        visibleShifts.forEach(s => {
+          const sh = document.createElement("div");
+          sh.className = `cell subheader${d.isWeekend ? " weekend" : ""}`;
+          sh.textContent = s.label;
+          grid.appendChild(sh);
+        });
+      });
+
       // Resource rows
       resources.forEach(r => {
+        // resource cell spans 2 header rows already handled, now just row cells
         const rc = document.createElement("div");
         rc.className = "cell resource";
 
         const av = document.createElement("div");
         av.className = "avatar";
         av.innerHTML = `
-          <img src="${escapeHtml(r.photo)}" alt="${escapeHtml(r.name)}" onerror="this.remove(); this.parentElement.textContent='${escapeHtml(initials(r.name))}'" />
+          <img src="${escapeHtml(r.photo)}" alt="${escapeHtml(r.name)}"
+               onerror="this.remove(); this.parentElement.textContent='${escapeHtml(initials(r.name))}'" />
         `;
 
         const txt = document.createElement("div");
@@ -583,60 +654,61 @@
         rc.appendChild(row);
         grid.appendChild(rc);
 
+        // shift cells for each day
         weekDays.forEach(d => {
-          const cellKey = makeCellKey(r.id, d.key);
+          visibleShifts.forEach(s => {
+            const cellKey = makeCellKey(r.id, d.key, s.key);
 
-          const c = document.createElement("div");
-          c.className = "cell";
+            const c = document.createElement("div");
+            c.className = "cell";
 
-          const dz = document.createElement("div");
-          dz.className = `dropzone${d.isWeekend ? " weekend" : ""}`;
-          dz.dataset.cellKey = cellKey;
+            const dz = document.createElement("div");
+            dz.className = `dropzone${d.isWeekend ? " weekend" : ""}`;
+            dz.dataset.cellKey = cellKey;
 
-          // Cell top tools
-          const tools = document.createElement("div");
-          tools.className = "cell-tools";
-          const left = document.createElement("div");
-          left.className = "hint";
-          left.textContent = "";
+            const tools = document.createElement("div");
+            tools.className = "cell-tools";
 
-          const menu = document.createElement("div");
-          menu.className = "tiny-link";
-          menu.textContent = "Add";
-          menu.onclick = () => openCellMenu(cellKey, r, d);
+            const left = document.createElement("div");
+            left.className = "hint";
+            left.textContent = "";
 
-          tools.appendChild(left);
-          tools.appendChild(menu);
-          dz.appendChild(tools);
+            const menu = document.createElement("div");
+            menu.className = "tiny-link";
+            menu.textContent = "Add";
+            menu.onclick = () => openCellMenu(cellKey, r, d, s);
 
-          // Drag over and drop
-          dz.addEventListener("dragover", (e) => {
-            e.preventDefault();
-            dz.classList.add("over");
+            tools.appendChild(left);
+            tools.appendChild(menu);
+            dz.appendChild(tools);
+
+            dz.addEventListener("dragover", (e) => {
+              e.preventDefault();
+              dz.classList.add("over");
+            });
+            dz.addEventListener("dragleave", () => dz.classList.remove("over"));
+            dz.addEventListener("drop", (e) => {
+              e.preventDefault();
+              dz.classList.remove("over");
+              const payload = safeParse(e.dataTransfer.getData("text/plain"));
+              if (!payload) return;
+              handleDrop(payload, cellKey);
+            });
+
+            const items = getCellItems(cellKey);
+
+            if (items.length === 0) {
+              const hint = document.createElement("div");
+              hint.className = "hint";
+              hint.textContent = "Drop job here";
+              dz.appendChild(hint);
+            } else {
+              items.forEach((it, idx) => dz.appendChild(renderCellItem(it, cellKey, idx, r, d, s)));
+            }
+
+            c.appendChild(dz);
+            grid.appendChild(c);
           });
-          dz.addEventListener("dragleave", () => dz.classList.remove("over"));
-          dz.addEventListener("drop", (e) => {
-            e.preventDefault();
-            dz.classList.remove("over");
-            const payload = safeParse(e.dataTransfer.getData("text/plain"));
-            if (!payload) return;
-            handleDrop(payload, cellKey);
-          });
-
-          // Items
-          const items = getCellItems(cellKey);
-
-          if (items.length === 0) {
-            const hint = document.createElement("div");
-            hint.className = "hint";
-            hint.textContent = "Drop job here";
-            dz.appendChild(hint);
-          } else {
-            items.forEach((it, idx) => dz.appendChild(renderCellItem(it, cellKey, idx, r, d)));
-          }
-
-          c.appendChild(dz);
-          grid.appendChild(c);
         });
       });
 
@@ -653,7 +725,7 @@
         e.dataTransfer.setData("text/plain", JSON.stringify({
           type: "item",
           from: "backlog",
-          jobId: job.jobId,
+          jobNumber: job.jobNumber,
           item: job
         }));
         e.dataTransfer.effectAllowed = "move";
@@ -661,19 +733,20 @@
 
       card.innerHTML = `
         <div class="top">
-          <div class="name">${escapeHtml(job.jobId)}, ${escapeHtml(job.title)}</div>
-          <span class="badge">${escapeHtml(job.priority)}</span>
+          <div class="name">${escapeHtml(job.jobNumber)}, ${escapeHtml(job.partDescription)}</div>
+          <span class="badge">${escapeHtml(job.durationHours + "h")}</span>
         </div>
         <div class="meta">
-          <span>${escapeHtml(String(job.hours))}h</span>
-          <span>${escapeHtml(job.customer)}</span>
+          <span>${escapeHtml(job.partNumber)}</span>
+          <span>${escapeHtml(job.customerNumber)}</span>
+          <span>Qty ${escapeHtml(String(job.quantity))}</span>
         </div>
       `;
       return card;
     }
 
     // Cell item, small one line card
-    function renderCellItem(item, cellKey, indexInCell, resource, day) {
+    function renderCellItem(item, cellKey, indexInCell, resource, day, shift) {
       const card = document.createElement("div");
 
       if (item.kind === "leave" || item.kind === "holiday") {
@@ -682,22 +755,19 @@
           <div class="line">${escapeHtml(item.label)}</div>
           <div class="tag">${escapeHtml(item.kind.toUpperCase())}</div>
         `;
-        card.onclick = () => openDetails(item, { resource, day, cellKey });
+        card.onclick = () => openDetails(item, { resource, day, shift, cellKey });
         return card;
       }
 
       // Job
-      const pri = (item.priority || "").toLowerCase();
-      const cls = pri === "high" ? "high" : (pri === "med" ? "med" : "low");
-      card.className = `mini ${cls}`;
+      card.className = "mini";
       card.draggable = true;
 
-      // Drag payload includes the job id and source cell
       card.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", JSON.stringify({
           type: "item",
           from: "scheduled",
-          jobId: item.jobId,
+          jobNumber: item.jobNumber,
           sourceCellKey: cellKey,
           sourceIndex: indexInCell,
           item: item
@@ -705,15 +775,14 @@
         e.dataTransfer.effectAllowed = "move";
       });
 
-      // Click details
       card.onclick = (ev) => {
         ev.stopPropagation();
-        openDetails(item, { resource, day, cellKey });
+        openDetails(item, { resource, day, shift, cellKey });
       };
 
       card.innerHTML = `
-        <div class="line">${escapeHtml(item.jobId)}, ${escapeHtml(item.title)}</div>
-        <div class="tag">${escapeHtml(item.hours + "h")}</div>
+        <div class="line">${escapeHtml(item.jobNumber)}, ${escapeHtml(item.partNumber)}</div>
+        <div class="tag">${escapeHtml(item.durationHours + "h")}</div>
       `;
       return card;
     }
@@ -722,21 +791,15 @@
     function handleDrop(payload, targetCellKey) {
       if (!payload || payload.type !== "item") return;
 
-      // Prevent adding jobs to a cell that contains a Holiday or Leave only if you want strict mode.
-      // For demo, allow stacking anyway.
-
       if (payload.from === "backlog") {
-        // Remove from backlog
-        backlogJobs = backlogJobs.filter(j => j.jobId !== payload.jobId);
-
-        // Add to target cell (stack)
+        backlogJobs = backlogJobs.filter(j => j.jobNumber !== payload.jobNumber);
         getCellItems(targetCellKey).push(payload.item);
-        render();
+        renderBoard();
+        renderBacklog();
         return;
       }
 
       if (payload.from === "scheduled") {
-        // Move between cells
         const srcKey = payload.sourceCellKey;
         const srcIdx = payload.sourceIndex;
 
@@ -746,24 +809,20 @@
         const moving = srcItems[srcIdx];
         if (!moving) return;
 
-        // Remove from source
         srcItems.splice(srcIdx, 1);
-
-        // Add to target
         getCellItems(targetCellKey).push(moving);
 
-        // Clean up empty arrays to keep payload clean
         if (srcItems.length === 0) delete schedule[srcKey];
 
-        render();
+        renderBoard();
         return;
       }
     }
 
     // ---------- Leave and holiday ----------
-    function openCellMenu(cellKey, resource, day) {
+    function openCellMenu(cellKey, resource, day, shift) {
       const choice = prompt(
-        "Type: leave, holiday, clear, cancel\n\nleave = add leave for this resource/day\nholiday = add holiday block for this resource/day\nclear = remove everything from this cell",
+        "Type: leave, holiday, clear, cancel\n\nleave = add leave for this resource/day/shift\nholiday = add holiday block for this resource/day/shift\nclear = remove everything from this cell",
         "leave"
       );
 
@@ -774,31 +833,23 @@
 
       if (c === "clear") {
         delete schedule[cellKey];
-        render();
+        renderBoard();
         return;
       }
 
       if (c === "leave") {
         const label = prompt("Leave label", "Leave");
         if (!label) return;
-        getCellItems(cellKey).unshift({
-          kind: "leave",
-          label: label,
-          notes: "Leave requested"
-        });
-        render();
+        getCellItems(cellKey).unshift({ kind: "leave", label: label, notes: "Leave" });
+        renderBoard();
         return;
       }
 
       if (c === "holiday") {
         const label = prompt("Holiday label", "Public Holiday");
         if (!label) return;
-        getCellItems(cellKey).unshift({
-          kind: "holiday",
-          label: label,
-          notes: "Holiday"
-        });
-        render();
+        getCellItems(cellKey).unshift({ kind: "holiday", label: label, notes: "Holiday" });
+        renderBoard();
         return;
       }
 
@@ -809,25 +860,28 @@
     function openDetails(item, ctx) {
       const resource = ctx?.resource;
       const day = ctx?.day;
+      const shift = ctx?.shift;
 
       const title = item.kind === "job"
-        ? `${item.jobId}, ${item.title}`
+        ? `${item.jobNumber}`
         : item.label;
 
       document.getElementById("modalTitle").textContent = title;
 
       const rows = [];
-
       if (resource) rows.push(["Resource", `${resource.name} (${resource.id})`]);
       if (day) rows.push(["Date", day.label]);
+      if (shift) rows.push(["Shift", shift.label]);
 
       if (item.kind === "job") {
-        rows.push(["Priority", item.priority || ""]);
-        rows.push(["Hours", String(item.hours ?? "")]);
-        rows.push(["Customer", item.customer || ""]);
-        rows.push(["Notes", item.notes || ""]);
+        rows.push(["Job Number", item.jobNumber || ""]);
+        rows.push(["Part Number", item.partNumber || ""]);
+        rows.push(["Customer Number", item.customerNumber || ""]);
+        rows.push(["Part Description", item.partDescription || ""]);
+        rows.push(["Quantity", String(item.quantity ?? "")]);
+        rows.push(["Duration", `${item.durationHours ?? ""} hours`]);
       } else {
-        rows.push(["Type", item.kind.toUpperCase()]);
+        rows.push(["Type", (item.kind || "").toUpperCase()]);
         rows.push(["Notes", item.notes || ""]);
       }
 
@@ -854,9 +908,13 @@
 
     // ---------- Save and reset ----------
     function autoFillDemo() {
-      // fills jobs in first available cells, leaves holidays untouched
+      const visibleShifts = getVisibleShifts();
       const cells = [];
-      resources.forEach(r => weekDays.forEach(d => cells.push(makeCellKey(r.id, d.key))));
+      resources.forEach(r => {
+        weekDays.forEach(d => {
+          visibleShifts.forEach(s => cells.push(makeCellKey(r.id, d.key, s.key)));
+        });
+      });
 
       let i = 0;
       while (backlogJobs.length > 0 && i < cells.length) {
@@ -864,23 +922,27 @@
         getCellItems(ck).push(backlogJobs.shift());
         i++;
       }
+
       render();
     }
 
     function saveChanges() {
-      // Convert schedule to a clean payload
       const out = [];
       Object.keys(schedule).forEach(cellKey => {
-        const [resourceId, dayKey] = cellKey.split("|");
+        const [resourceId, dayKey, shiftKey] = cellKey.split("|");
         schedule[cellKey].forEach(it => {
           out.push({
             resourceId,
             day: dayKey,
+            shift: shiftKey,
             kind: it.kind,
-            jobId: it.kind === "job" ? it.jobId : null,
-            titleOrLabel: it.kind === "job" ? it.title : it.label,
-            hours: it.kind === "job" ? it.hours : null,
-            priority: it.kind === "job" ? it.priority : null
+            jobNumber: it.kind === "job" ? it.jobNumber : null,
+            partNumber: it.kind === "job" ? it.partNumber : null,
+            customerNumber: it.kind === "job" ? it.customerNumber : null,
+            partDescription: it.kind === "job" ? it.partDescription : null,
+            quantity: it.kind === "job" ? it.quantity : null,
+            durationHours: it.kind === "job" ? it.durationHours : null,
+            label: it.kind !== "job" ? it.label : null
           });
         });
       });
@@ -893,6 +955,8 @@
       resources = structuredClone(demoResources);
       backlogJobs = structuredClone(demoJobs);
       schedule = {};
+      shiftFilter = "both";
+      document.getElementById("shiftFilter").value = "both";
       render();
     }
 
