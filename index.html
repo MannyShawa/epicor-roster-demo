@@ -1,0 +1,140 @@
+!DOCTYPE html
+html
+head
+meta charset=UTF-8
+titleEpicor Resource Rostering Tooltitle
+style
+body {
+  font-family Arial;
+  background-color #f4f6f9;
+  margin 20px;
+}
+
+h1 {
+  margin-bottom 20px;
+}
+
+table {
+  width 100%;
+  border-collapse collapse;
+  background white;
+}
+
+th, td {
+  padding 10px;
+  text-align left;
+  border-bottom 1px solid #ddd;
+}
+
+th {
+  background-color #2b579a;
+  color white;
+}
+
+input {
+  width 70px;
+  padding 5px;
+}
+
+.overloaded {
+  background-color #ffcccc;
+}
+
+.util-good {
+  color green;
+}
+
+.util-high {
+  color red;
+  font-weight bold;
+}
+
+button {
+  margin-top 15px;
+  padding 8px 15px;
+  background-color #2b579a;
+  color white;
+  border none;
+  cursor pointer;
+}
+style
+head
+
+body
+
+h1Resource Rostering Dashboardh1
+
+table id=rosterTable
+  thead
+    tr
+      thIDth
+      thNameth
+      thGroupth
+      thStd Hoursth
+      thAllocatedth
+      thAvailableth
+      thUtilization %th
+    tr
+  thead
+  tbodytbody
+table
+
+button onclick=saveChanges()Save Changesbutton
+
+script
+
+const resources = [
+  { id EMP001, name John Smith, group Assembly, stdHours 40, allocated 32 },
+  { id EMP002, name Sarah Lee, group Welding, stdHours 40, allocated 45 },
+  { id EMP003, name Michael Tran, group Paint, stdHours 38, allocated 30 }
+];
+
+function renderTable() {
+  const tbody = document.querySelector(#rosterTable tbody);
+  tbody.innerHTML = ;
+
+  resources.forEach((res, index) = {
+    const available = res.stdHours - res.allocated;
+    const utilization = ((res.allocated  res.stdHours)  100).toFixed(1);
+
+    const row = document.createElement(tr);
+
+    if (res.allocated  res.stdHours) {
+      row.classList.add(overloaded);
+    }
+
+    row.innerHTML = `
+      td${res.id}td
+      td${res.name}td
+      td${res.group}td
+      tdinput type=number value=${res.stdHours} onchange=updateStd(${index}, this.value) td
+      tdinput type=number value=${res.allocated} onchange=updateAllocated(${index}, this.value) td
+      td${available}td
+      td class=${utilization  100  'util-high'  'util-good'}${utilization}%td
+    `;
+
+    tbody.appendChild(row);
+  });
+}
+
+function updateStd(index, value) {
+  resources[index].stdHours = parseFloat(value);
+  renderTable();
+}
+
+function updateAllocated(index, value) {
+  resources[index].allocated = parseFloat(value);
+  renderTable();
+}
+
+function saveChanges() {
+  console.log(Updated Data, resources);
+  alert(Demo Save Completed. Later this will POST to Epicor REST.);
+}
+
+renderTable();
+
+script
+
+body
+html
