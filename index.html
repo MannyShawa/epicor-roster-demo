@@ -3,22 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Epicor, Weekly Resource Plan</title>
-
+  <title>Epicor, Weekly Resource Calendar</title>
   <link rel="icon" type="image/png" href="assets/epicor-favicon.png" />
 
   <style>
     :root{
-      /* Brand palette from your reference */
-      --dark-petrol: #002b3a;    /* DARK PETROL */
-      --petrol: #053c55;         /* PETROL */
-      --teal: #025064;           /* TEAL */
-      --light-teal: #317d9b;     /* LIGHT TEAL */
-      --light-gray: #eef2f5;     /* LIGHT GRAY */
-      --bright-blue: #008cf8;    /* BRIGHT BLUE */
-      --lemon: #fcdd00;          /* LEMON */
-      --dark-red: #a00d1c;       /* DARK RED */
-      --aqua-40: #d0ede4;        /* AQUA 40% TINT */
+      --dark-petrol: #002b3a;
+      --petrol: #053c55;
+      --light-gray: #eef2f5;
+      --bright-blue: #008cf8;
+      --lemon: #fcdd00;
+      --dark-red: #a00d1c;
+      --aqua-40: #d0ede4;
 
       --bg: #f7f9fb;
       --card: #ffffff;
@@ -32,7 +28,6 @@
     * { box-sizing: border-box; }
     body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--text); }
 
-    /* Top bar */
     .topbar{
       background: linear-gradient(90deg, var(--petrol), var(--dark-petrol));
       color: #fff;
@@ -47,12 +42,11 @@
     .title-wrap h1{ margin:0; font-size: 18px; font-weight: 800; letter-spacing: 0.2px; }
     .title-wrap .subtitle{ font-size: 12px; opacity: 0.9; }
 
-    .container{ max-width: 1500px; margin: 16px auto; padding: 0 16px 22px; }
+    .container{ max-width: 1550px; margin: 16px auto; padding: 0 16px 22px; }
 
-    /* Layout */
     .layout{
       display: grid;
-      grid-template-columns: 320px 1fr;
+      grid-template-columns: 340px 1fr;
       gap: 12px;
       align-items: start;
     }
@@ -74,16 +68,16 @@
       gap: 12px;
       background: #fff;
     }
-    .card-header .heading{ font-size: 13px; font-weight: 800; margin:0; }
+
+    .card-header .heading{ font-size: 13px; font-weight: 900; margin:0; }
     .card-header .hint{ font-size: 12px; color: var(--muted); margin-top: 3px; }
 
     .controls{ display:flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
-
     .btn{
       border: 0;
       border-radius: 10px;
       padding: 10px 12px;
-      font-weight: 800;
+      font-weight: 900;
       font-size: 12px;
       cursor: pointer;
       display: inline-flex;
@@ -96,7 +90,7 @@
     .btn-secondary{ background: var(--light-gray); color: var(--text); border: 1px solid #dde3ea; }
     .btn-warn{ background: var(--lemon); color: #111827; }
 
-    /* Backlog */
+    /* Backlog jobs */
     .backlog{
       padding: 10px 12px 14px;
       display:flex;
@@ -130,10 +124,10 @@
       color: #0f172a;
       white-space: nowrap;
     }
-    .job .name{ font-weight: 800; font-size: 12px; }
+    .job .name{ font-weight: 900; font-size: 12px; }
     .job .meta{ font-size: 12px; color: var(--muted); display:flex; gap: 8px; flex-wrap: wrap; }
 
-    /* Excel-like board */
+    /* Board */
     .board-wrap{
       padding: 10px 12px 14px;
       overflow: auto;
@@ -141,7 +135,7 @@
     }
 
     .excel{
-      min-width: 1100px;
+      min-width: 1200px;
       border: 1px solid var(--grid);
       border-radius: 12px;
       overflow: hidden;
@@ -150,7 +144,7 @@
 
     .grid{
       display: grid;
-      grid-template-columns: 240px repeat(7, minmax(150px, 1fr));
+      grid-template-columns: 280px repeat(7, minmax(150px, 1fr));
     }
 
     .cell{
@@ -158,12 +152,12 @@
       border-bottom: 1px solid var(--grid);
       padding: 10px;
       background: #fff;
-      min-height: 86px;
+      min-height: 98px;
     }
 
     .cell.header{
       background: var(--light-gray);
-      font-weight: 800;
+      font-weight: 900;
       font-size: 12px;
       color: #0f172a;
       min-height: unset;
@@ -173,22 +167,16 @@
       z-index: 3;
     }
 
+    .cell.header.weekend{
+      background: rgba(252, 221, 0, 0.22);
+    }
+
     .cell.resource{
       background: #fbfcfe;
-      font-weight: 800;
-      font-size: 12px;
-      color: #0f172a;
       position: sticky;
       left: 0;
       z-index: 2;
-    }
-
-    .resource-sub{
-      display:block;
-      font-weight: 600;
-      color: var(--muted);
-      font-size: 11px;
-      margin-top: 4px;
+      padding: 10px;
     }
 
     .corner{
@@ -199,21 +187,131 @@
       background: var(--light-gray);
     }
 
+    .resource-row{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar{
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid #dde3ea;
+      background: #fff;
+      overflow: hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 900;
+      color: var(--petrol);
+      flex: 0 0 auto;
+    }
+    .avatar img{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display:block;
+    }
+    .rname{ font-weight: 900; font-size: 12px; }
+    .rsub{ font-weight: 700; color: var(--muted); font-size: 11px; margin-top: 2px; }
+
     .dropzone{
       border-radius: 10px;
-      min-height: 64px;
+      min-height: 78px;
       padding: 8px;
       border: 1px dashed rgba(0, 140, 248, 0.35);
-      background: rgba(0, 140, 248, 0.04);
+      background: rgba(0, 140, 248, 0.03);
       display:flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       transition: background 120ms ease, border-color 120ms ease;
     }
 
+    .dropzone.weekend{
+      background: rgba(252, 221, 0, 0.10);
+      border-color: rgba(5, 60, 85, 0.22);
+    }
+
     .dropzone.over{
-      background: rgba(0, 140, 248, 0.09);
-      border-color: rgba(0, 140, 248, 0.6);
+      background: rgba(0, 140, 248, 0.08);
+      border-color: rgba(0, 140, 248, 0.65);
+    }
+
+    .cell-tools{
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .tiny-link{
+      font-size: 11px;
+      color: var(--bright-blue);
+      text-decoration: underline;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    /* Small scheduled cards, one line */
+    .mini{
+      border-radius: 8px;
+      padding: 6px 8px;
+      border: 1px solid rgba(5, 60, 85, 0.20);
+      background: rgba(49, 125, 155, 0.14);
+      cursor: grab;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .mini:active{ cursor: grabbing; }
+
+    .mini.high{
+      border-color: rgba(160, 13, 28, 0.28);
+      background: rgba(255, 136, 115, 0.18);
+    }
+    .mini.med{
+      border-color: rgba(5, 60, 85, 0.20);
+      background: rgba(208, 237, 228, 0.65);
+    }
+    .mini.low{
+      border-color: rgba(5, 60, 85, 0.14);
+      background: rgba(238, 242, 245, 0.95);
+    }
+
+    .mini.leave{
+      border-color: rgba(160, 13, 28, 0.25);
+      background: rgba(252, 221, 0, 0.22);
+      cursor: pointer;
+    }
+
+    .mini.holiday{
+      border-color: rgba(5, 60, 85, 0.22);
+      background: rgba(252, 221, 0, 0.32);
+      cursor: pointer;
+    }
+
+    .mini .line{
+      font-size: 11.5px;
+      font-weight: 900;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1 1 auto;
+    }
+
+    .mini .tag{
+      font-size: 10.5px;
+      font-weight: 900;
+      color: rgba(15, 23, 42, 0.78);
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-radius: 999px;
+      padding: 2px 6px;
+      background: rgba(255,255,255,0.6);
+      flex: 0 0 auto;
     }
 
     .hint{
@@ -221,47 +319,70 @@
       color: var(--muted);
     }
 
-    /* Scheduled block */
-    .block{
-      border-radius: 10px;
-      padding: 9px 9px;
-      border: 1px solid rgba(5, 60, 85, 0.22);
-      background: rgba(49, 125, 155, 0.14);
-      cursor: grab;
-    }
-    .block:active{ cursor: grabbing; }
-
-    .block.high{
-      border-color: rgba(160, 13, 28, 0.35);
-      background: rgba(255, 136, 115, 0.22);
-    }
-
-    .block.med{
-      border-color: rgba(5, 60, 85, 0.22);
-      background: rgba(208, 237, 228, 0.6);
-    }
-
-    .block.low{
-      border-color: rgba(5, 60, 85, 0.18);
-      background: rgba(238, 242, 245, 0.95);
-    }
-
-    .block .line1{
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .block .title{ font-weight: 900; font-size: 12px; }
-    .block .small{ font-size: 11px; color: var(--muted); display:flex; gap: 8px; flex-wrap: wrap; }
-
     .footer-note{
       padding: 10px 14px;
       border-top: 1px solid #e5e7eb;
       font-size: 12px;
       color: var(--muted);
+      background: #fff;
+    }
+
+    /* Modal */
+    .modal-overlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 50;
+    }
+    .modal{
+      width: 520px;
+      max-width: 100%;
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+      overflow: hidden;
+    }
+    .modal-header{
+      padding: 12px 14px;
+      border-bottom: 1px solid #e5e7eb;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--light-gray);
+    }
+    .modal-title{
+      font-weight: 900;
+      font-size: 13px;
+      margin: 0;
+    }
+    .modal-body{
+      padding: 14px;
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 12px;
+      color: #0f172a;
+    }
+    .kv{
+      display:grid;
+      grid-template-columns: 140px 1fr;
+      gap: 8px 10px;
+      align-items: start;
+    }
+    .k{ color: var(--muted); font-weight: 800; }
+    .v{ font-weight: 800; }
+    .modal-actions{
+      padding: 12px 14px;
+      border-top: 1px solid #e5e7eb;
+      display:flex;
+      justify-content: flex-end;
+      gap: 8px;
       background: #fff;
     }
 
@@ -276,8 +397,8 @@
   <div class="topbar">
     <img class="logo" src="assets/epicor-logo.svg" alt="Epicor" onerror="this.style.display='none'"/>
     <div class="title-wrap">
-      <h1>Weekly Resource Plan</h1>
-      <div class="subtitle">Excel style, Monday to Sunday, drag jobs to assign, drag again to reschedule, drop onto a job to swap</div>
+      <h1>Weekly Resource Calendar</h1>
+      <div class="subtitle">Drag jobs to assign, multiple jobs per day, weekends highlighted, add leave and holiday, click a card for details</div>
     </div>
   </div>
 
@@ -299,7 +420,7 @@
         <div class="backlog" id="backlog"></div>
 
         <div class="footer-note">
-          Demo mode only, later we load resources and jobs from Epicor REST, then POST schedule updates back.
+          Demo mode only, later this becomes Epicor REST reads and updates.
         </div>
       </div>
 
@@ -308,7 +429,7 @@
         <div class="card-header">
           <div>
             <div class="heading">Schedule, Monday to Sunday</div>
-            <div class="hint">Tip, drop onto an occupied cell to swap jobs</div>
+            <div class="hint">Cell menu, Add leave, Add holiday, Clear cell, drop jobs to stack them</div>
           </div>
           <div class="controls">
             <button class="btn btn-primary" onclick="saveChanges()">Save Changes</button>
@@ -320,37 +441,51 @@
         </div>
 
         <div class="footer-note">
-          Next iteration, add time slots inside each day (AM, PM or hourly), job duration spanning, filters by group.
+          Next upgrade, time slots (AM, PM, hourly), plus conflict checks and capacity bars.
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Details modal -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModalIfBackdrop(event)">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Details</div>
+        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Demo data
+    // ---------- Demo data ----------
     const demoResources = [
-      { id: "EMP001", name: "John Smith", group: "Assembly" },
-      { id: "EMP002", name: "Sarah Lee", group: "Welding" },
-      { id: "EMP003", name: "Michael Tran", group: "Paint" },
-      { id: "EMP004", name: "Aisha Khan", group: "Assembly" }
+      { id: "EMP001", name: "John Smith", group: "Assembly", photo: "assets/employees/EMP001.jpg" },
+      { id: "EMP002", name: "Sarah Lee", group: "Welding",  photo: "assets/employees/EMP002.jpg" },
+      { id: "EMP003", name: "Michael Tran", group: "Paint",   photo: "assets/employees/EMP003.jpg" },
+      { id: "EMP004", name: "Aisha Khan", group: "Assembly",  photo: "assets/employees/EMP004.jpg" }
     ];
 
     const demoJobs = [
-      { jobId: "J-10021", title: "Switchboard build", hours: 6, priority: "High" },
-      { jobId: "J-10034", title: "Panel wiring", hours: 4, priority: "Med" },
-      { jobId: "J-10040", title: "Factory test", hours: 3, priority: "Low" },
-      { jobId: "J-10055", title: "Cut, drill, bend", hours: 5, priority: "High" },
-      { jobId: "J-10080", title: "Powder coat prep", hours: 4, priority: "Med" },
-      { jobId: "J-10110", title: "Labeling and pack", hours: 2, priority: "Low" }
+      { kind: "job", jobId: "J-10021", title: "Switchboard build", hours: 6, priority: "High", customer: "Acme", notes: "Frame and wiring" },
+      { kind: "job", jobId: "J-10034", title: "Panel wiring", hours: 4, priority: "Med", customer: "Northwind", notes: "Follow wiring diagram" },
+      { kind: "job", jobId: "J-10040", title: "Factory test", hours: 3, priority: "Low", customer: "Acme", notes: "FAT checklist" },
+      { kind: "job", jobId: "J-10055", title: "Cut, drill, bend", hours: 5, priority: "High", customer: "Contoso", notes: "Sheet metal prep" },
+      { kind: "job", jobId: "J-10080", title: "Powder coat prep", hours: 4, priority: "Med", customer: "Fabrikam", notes: "Masking and prep" },
+      { kind: "job", jobId: "J-10110", title: "Label and pack", hours: 2, priority: "Low", customer: "Tailspin", notes: "Pack list and labels" }
     ];
 
     let resources = structuredClone(demoResources);
     let backlogJobs = structuredClone(demoJobs);
 
-    // schedule cellKey -> job
+    // schedule cellKey -> array of items (jobs, leave, holiday)
     let schedule = {};
 
-    // Monday to Sunday of current week
+    // ---------- Week helpers ----------
     function getWeekMonToSun() {
       const now = new Date();
       const dow = now.getDay(); // 0 Sun .. 6 Sat
@@ -365,7 +500,8 @@
         d.setDate(monday.getDate() + i);
         const key = d.toISOString().slice(0,10);
         const label = d.toLocaleDateString(undefined, { weekday: "short", day: "2-digit", month: "short" });
-        days.push({ key, label });
+        const isWeekend = d.getDay() === 6 || d.getDay() === 0; // Sat, Sun
+        days.push({ key, label, isWeekend });
       }
       return days;
     }
@@ -376,6 +512,12 @@
       return `${resourceId}|${dayKey}`;
     }
 
+    function getCellItems(cellKey) {
+      if (!schedule[cellKey]) schedule[cellKey] = [];
+      return schedule[cellKey];
+    }
+
+    // ---------- Rendering ----------
     function render() {
       renderBacklog();
       renderBoard();
@@ -385,7 +527,7 @@
       const el = document.getElementById("backlog");
       el.innerHTML = "";
 
-      backlogJobs.forEach(job => el.appendChild(renderJobCard(job, "backlog")));
+      backlogJobs.forEach(job => el.appendChild(renderBacklogCard(job)));
 
       if (backlogJobs.length === 0) {
         const empty = document.createElement("div");
@@ -411,7 +553,7 @@
 
       weekDays.forEach(d => {
         const h = document.createElement("div");
-        h.className = "cell header";
+        h.className = `cell header${d.isWeekend ? " weekend" : ""}`;
         h.textContent = d.label;
         grid.appendChild(h);
       });
@@ -420,21 +562,54 @@
       resources.forEach(r => {
         const rc = document.createElement("div");
         rc.className = "cell resource";
-        rc.innerHTML = `
-          <div>${escapeHtml(r.name)}</div>
-          <span class="resource-sub">${escapeHtml(r.group)}, ${escapeHtml(r.id)}</span>
+
+        const av = document.createElement("div");
+        av.className = "avatar";
+        av.innerHTML = `
+          <img src="${escapeHtml(r.photo)}" alt="${escapeHtml(r.name)}" onerror="this.remove(); this.parentElement.textContent='${escapeHtml(initials(r.name))}'" />
         `;
+
+        const txt = document.createElement("div");
+        txt.innerHTML = `
+          <div class="rname">${escapeHtml(r.name)}</div>
+          <div class="rsub">${escapeHtml(r.group)}, ${escapeHtml(r.id)}</div>
+        `;
+
+        const row = document.createElement("div");
+        row.className = "resource-row";
+        row.appendChild(av);
+        row.appendChild(txt);
+
+        rc.appendChild(row);
         grid.appendChild(rc);
 
         weekDays.forEach(d => {
           const cellKey = makeCellKey(r.id, d.key);
+
           const c = document.createElement("div");
           c.className = "cell";
 
           const dz = document.createElement("div");
-          dz.className = "dropzone";
+          dz.className = `dropzone${d.isWeekend ? " weekend" : ""}`;
           dz.dataset.cellKey = cellKey;
 
+          // Cell top tools
+          const tools = document.createElement("div");
+          tools.className = "cell-tools";
+          const left = document.createElement("div");
+          left.className = "hint";
+          left.textContent = "";
+
+          const menu = document.createElement("div");
+          menu.className = "tiny-link";
+          menu.textContent = "Add";
+          menu.onclick = () => openCellMenu(cellKey, r, d);
+
+          tools.appendChild(left);
+          tools.appendChild(menu);
+          dz.appendChild(tools);
+
+          // Drag over and drop
           dz.addEventListener("dragover", (e) => {
             e.preventDefault();
             dz.classList.add("over");
@@ -448,14 +623,16 @@
             handleDrop(payload, cellKey);
           });
 
-          const job = schedule[cellKey];
-          if (job) {
-            dz.appendChild(renderJobCard(job, "scheduled", cellKey));
-          } else {
+          // Items
+          const items = getCellItems(cellKey);
+
+          if (items.length === 0) {
             const hint = document.createElement("div");
             hint.className = "hint";
             hint.textContent = "Drop job here";
             dz.appendChild(hint);
+          } else {
+            items.forEach((it, idx) => dz.appendChild(renderCellItem(it, cellKey, idx, r, d)));
           }
 
           c.appendChild(dz);
@@ -466,107 +643,248 @@
       board.appendChild(grid);
     }
 
-    function renderJobCard(job, mode, cellKey) {
+    // Backlog card
+    function renderBacklogCard(job) {
       const card = document.createElement("div");
-      const priorityClass = (job.priority || "").toLowerCase() === "high"
-        ? "high"
-        : (job.priority || "").toLowerCase() === "med"
-          ? "med"
-          : "low";
-
-      card.className = mode === "scheduled" ? `block ${priorityClass}` : "job";
+      card.className = "job";
       card.draggable = true;
 
-      const payload = { type: "job", from: mode, cellKey: cellKey || null, job };
       card.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/plain", JSON.stringify(payload));
+        e.dataTransfer.setData("text/plain", JSON.stringify({
+          type: "item",
+          from: "backlog",
+          jobId: job.jobId,
+          item: job
+        }));
         e.dataTransfer.effectAllowed = "move";
       });
 
       card.innerHTML = `
-        <div class="line1">
-          <div class="title">${escapeHtml(job.jobId)}, ${escapeHtml(job.title)}</div>
+        <div class="top">
+          <div class="name">${escapeHtml(job.jobId)}, ${escapeHtml(job.title)}</div>
           <span class="badge">${escapeHtml(job.priority)}</span>
         </div>
-        <div class="${mode === "scheduled" ? "small" : "meta"}">
+        <div class="meta">
           <span>${escapeHtml(String(job.hours))}h</span>
+          <span>${escapeHtml(job.customer)}</span>
         </div>
       `;
       return card;
     }
 
+    // Cell item, small one line card
+    function renderCellItem(item, cellKey, indexInCell, resource, day) {
+      const card = document.createElement("div");
+
+      if (item.kind === "leave" || item.kind === "holiday") {
+        card.className = `mini ${item.kind}`;
+        card.innerHTML = `
+          <div class="line">${escapeHtml(item.label)}</div>
+          <div class="tag">${escapeHtml(item.kind.toUpperCase())}</div>
+        `;
+        card.onclick = () => openDetails(item, { resource, day, cellKey });
+        return card;
+      }
+
+      // Job
+      const pri = (item.priority || "").toLowerCase();
+      const cls = pri === "high" ? "high" : (pri === "med" ? "med" : "low");
+      card.className = `mini ${cls}`;
+      card.draggable = true;
+
+      // Drag payload includes the job id and source cell
+      card.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", JSON.stringify({
+          type: "item",
+          from: "scheduled",
+          jobId: item.jobId,
+          sourceCellKey: cellKey,
+          sourceIndex: indexInCell,
+          item: item
+        }));
+        e.dataTransfer.effectAllowed = "move";
+      });
+
+      // Click details
+      card.onclick = (ev) => {
+        ev.stopPropagation();
+        openDetails(item, { resource, day, cellKey });
+      };
+
+      card.innerHTML = `
+        <div class="line">${escapeHtml(item.jobId)}, ${escapeHtml(item.title)}</div>
+        <div class="tag">${escapeHtml(item.hours + "h")}</div>
+      `;
+      return card;
+    }
+
+    // ---------- Drag drop logic ----------
     function handleDrop(payload, targetCellKey) {
-      if (!payload || payload.type !== "job") return;
+      if (!payload || payload.type !== "item") return;
 
-      const incomingJob = payload.job;
-      const targetHasJob = !!schedule[targetCellKey];
-      const sourceFromBacklog = payload.from === "backlog";
-      const sourceFromScheduled = payload.from === "scheduled";
-      const sourceCellKey = payload.cellKey;
+      // Prevent adding jobs to a cell that contains a Holiday or Leave only if you want strict mode.
+      // For demo, allow stacking anyway.
 
-      if (sourceFromScheduled && sourceCellKey === targetCellKey) return;
+      if (payload.from === "backlog") {
+        // Remove from backlog
+        backlogJobs = backlogJobs.filter(j => j.jobId !== payload.jobId);
 
-      if (sourceFromBacklog) {
-        backlogJobs = backlogJobs.filter(j => j.jobId !== incomingJob.jobId);
-
-        if (!targetHasJob) {
-          schedule[targetCellKey] = incomingJob;
-        } else {
-          const displaced = schedule[targetCellKey];
-          schedule[targetCellKey] = incomingJob;
-          backlogJobs.unshift(displaced);
-        }
+        // Add to target cell (stack)
+        getCellItems(targetCellKey).push(payload.item);
         render();
         return;
       }
 
-      if (sourceFromScheduled) {
-        const sourceJob = schedule[sourceCellKey];
-        if (!sourceJob) return;
+      if (payload.from === "scheduled") {
+        // Move between cells
+        const srcKey = payload.sourceCellKey;
+        const srcIdx = payload.sourceIndex;
 
-        if (!targetHasJob) {
-          delete schedule[sourceCellKey];
-          schedule[targetCellKey] = sourceJob;
-        } else {
-          const targetJob = schedule[targetCellKey];
-          schedule[targetCellKey] = sourceJob;
-          schedule[sourceCellKey] = targetJob;
-        }
+        if (!srcKey || srcKey === targetCellKey) return;
+
+        const srcItems = getCellItems(srcKey);
+        const moving = srcItems[srcIdx];
+        if (!moving) return;
+
+        // Remove from source
+        srcItems.splice(srcIdx, 1);
+
+        // Add to target
+        getCellItems(targetCellKey).push(moving);
+
+        // Clean up empty arrays to keep payload clean
+        if (srcItems.length === 0) delete schedule[srcKey];
+
         render();
         return;
       }
     }
 
+    // ---------- Leave and holiday ----------
+    function openCellMenu(cellKey, resource, day) {
+      const choice = prompt(
+        "Type: leave, holiday, clear, cancel\n\nleave = add leave for this resource/day\nholiday = add holiday block for this resource/day\nclear = remove everything from this cell",
+        "leave"
+      );
+
+      if (!choice) return;
+
+      const c = choice.trim().toLowerCase();
+      if (c === "cancel") return;
+
+      if (c === "clear") {
+        delete schedule[cellKey];
+        render();
+        return;
+      }
+
+      if (c === "leave") {
+        const label = prompt("Leave label", "Leave");
+        if (!label) return;
+        getCellItems(cellKey).unshift({
+          kind: "leave",
+          label: label,
+          notes: "Leave requested"
+        });
+        render();
+        return;
+      }
+
+      if (c === "holiday") {
+        const label = prompt("Holiday label", "Public Holiday");
+        if (!label) return;
+        getCellItems(cellKey).unshift({
+          kind: "holiday",
+          label: label,
+          notes: "Holiday"
+        });
+        render();
+        return;
+      }
+
+      alert("Unknown option. Use leave, holiday, clear, cancel.");
+    }
+
+    // ---------- Details modal ----------
+    function openDetails(item, ctx) {
+      const resource = ctx?.resource;
+      const day = ctx?.day;
+
+      const title = item.kind === "job"
+        ? `${item.jobId}, ${item.title}`
+        : item.label;
+
+      document.getElementById("modalTitle").textContent = title;
+
+      const rows = [];
+
+      if (resource) rows.push(["Resource", `${resource.name} (${resource.id})`]);
+      if (day) rows.push(["Date", day.label]);
+
+      if (item.kind === "job") {
+        rows.push(["Priority", item.priority || ""]);
+        rows.push(["Hours", String(item.hours ?? "")]);
+        rows.push(["Customer", item.customer || ""]);
+        rows.push(["Notes", item.notes || ""]);
+      } else {
+        rows.push(["Type", item.kind.toUpperCase()]);
+        rows.push(["Notes", item.notes || ""]);
+      }
+
+      const body = document.getElementById("modalBody");
+      body.innerHTML = `
+        <div class="kv">
+          ${rows.map(([k,v]) => `
+            <div class="k">${escapeHtml(k)}</div>
+            <div class="v">${escapeHtml(v)}</div>
+          `).join("")}
+        </div>
+      `;
+
+      document.getElementById("modalOverlay").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("modalOverlay").style.display = "none";
+    }
+
+    function closeModalIfBackdrop(e) {
+      if (e.target && e.target.id === "modalOverlay") closeModal();
+    }
+
+    // ---------- Save and reset ----------
     function autoFillDemo() {
-      // Simple demo auto fill, assigns first jobs across the grid
-      const allCells = [];
-      resources.forEach(r => weekDays.forEach(d => allCells.push(makeCellKey(r.id, d.key))));
+      // fills jobs in first available cells, leaves holidays untouched
+      const cells = [];
+      resources.forEach(r => weekDays.forEach(d => cells.push(makeCellKey(r.id, d.key))));
 
       let i = 0;
-      while (backlogJobs.length > 0 && i < allCells.length) {
-        const ck = allCells[i];
-        if (!schedule[ck]) {
-          schedule[ck] = backlogJobs.shift();
-        }
+      while (backlogJobs.length > 0 && i < cells.length) {
+        const ck = cells[i];
+        getCellItems(ck).push(backlogJobs.shift());
         i++;
       }
       render();
     }
 
     function saveChanges() {
-      // Later this becomes REST calls. For now, log schedule payload.
+      // Convert schedule to a clean payload
       const out = [];
       Object.keys(schedule).forEach(cellKey => {
-        const parts = cellKey.split("|");
-        out.push({
-          resourceId: parts[0],
-          day: parts[1],
-          jobId: schedule[cellKey].jobId,
-          title: schedule[cellKey].title,
-          hours: schedule[cellKey].hours,
-          priority: schedule[cellKey].priority
+        const [resourceId, dayKey] = cellKey.split("|");
+        schedule[cellKey].forEach(it => {
+          out.push({
+            resourceId,
+            day: dayKey,
+            kind: it.kind,
+            jobId: it.kind === "job" ? it.jobId : null,
+            titleOrLabel: it.kind === "job" ? it.title : it.label,
+            hours: it.kind === "job" ? it.hours : null,
+            priority: it.kind === "job" ? it.priority : null
+          });
         });
       });
+
       console.log("Schedule payload:", out);
       alert("Saved (demo). Check console for schedule payload.");
     }
@@ -578,15 +896,23 @@
       render();
     }
 
+    // ---------- Utilities ----------
     function safeParse(s) { try { return JSON.parse(s); } catch { return null; } }
 
     function escapeHtml(s) {
-      return String(s)
+      return String(s ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+    }
+
+    function initials(name) {
+      const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+      const a = parts[0]?.[0] || "E";
+      const b = parts[1]?.[0] || "";
+      return (a + b).toUpperCase();
     }
 
     render();
