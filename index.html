@@ -722,7 +722,7 @@
   </div>
 
   <script>
-    const APP_VERSION = "v2.3.0";
+    const APP_VERSION = "v2.4.0";
 
     // Images: prefer assets/Employees, fallback assets/employees, then initials
     const PHOTO_BASE_PRIMARY = "assets/Employees";
@@ -752,6 +752,11 @@
     // State
     let resources = structuredClone(demoResources);
     let jobs = structuredClone(demoJobs);
+
+    // Backlog availability: how many copies of each job are still available to schedule
+    // When you assign a job to a resource, availability decreases, when you delete an assignment, it increases
+    // Use Duplicate in backlog to increase availability for a job
+    let jobInventory = Object.fromEntries(jobs.map(j => [j.id, 1]));
 
     // Assignments allow multi-resource: each drop creates a new assignment row
     // { id, jobId, resourceId, dayKey, shiftKey }
@@ -935,18 +940,39 @@
       const el = document.getElementById("backlog");
       el.innerHTML = "";
 
+      // Show only jobs that still have availability in the backlog
       jobs.forEach(job => {
+        const available = Number(jobInventory[job.id] || 0);
+        if (available <= 0) return;
+
         const assignedCount = assignments.filter(a => a.jobId === job.id).length;
-        el.appendChild(renderBacklogCard(job, assignedCount));
+        el.appendChild(renderBacklogCard(job, assignedCount, available));
       });
+
+      // If everything is assigned, show a small empty state
+      if (!el.children.length) {
+        const empty = document.createElement("div");
+        empty.style.padding = "10px 4px";
+        empty.style.fontWeight = "900";
+        empty.style.opacity = "0.75";
+        empty.textContent = "No jobs available in backlog (all assigned).";
+        el.appendChild(empty);
+      }
     }
 
-    function renderBacklogCard(job, assignedCount) {
+    function renderBacklogCard(job, assignedCount, available) {
       const card = document.createElement("div");
       card.className = "job-card";
       card.draggable = true;
 
       card.addEventListener("dragstart", (e) => {
+        // Only allow dragging if at least 1 copy is available
+        const availNow = Number(jobInventory[job.id] || 0);
+        if (availNow <= 0) {
+          e.preventDefault();
+          return;
+        }
+
         e.dataTransfer.setData("text/plain", JSON.stringify({
           type: "job",
           jobId: job.id
@@ -959,7 +985,11 @@
       card.innerHTML = `
         <div class="job-top">
           <div class="job-title">${escapeHtml(job.jobNumber)} , ${escapeHtml(job.partNumber)}</div>
-          <div class="pill">${escapeHtml(job.durationHours)}h</div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <div class="pill">${escapeHtml(job.durationHours)}h</div>
+            <div class="pill">Avail ${escapeHtml(available)}</div>
+            <button class="icon-btn" type="button" title="Duplicate job in backlog">+</button>
+          </div>
         </div>
 
         <div class="job-sub">${escapeHtml(job.partDescription)}</div>
@@ -972,10 +1002,19 @@
         </div>
       `;
 
+      // Duplicate button
+      const dupBtn = card.querySelector(".icon-btn");
+      dupBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        jobInventory[job.id] = Number(jobInventory[job.id] || 0) + 1;
+        renderBacklog();
+      };
+
       return card;
     }
 
     function visibleShifts() {
+
       if (shiftFilter === "day") return [SHIFTS[0]];
       if (shiftFilter === "night") return [SHIFTS[1]];
       return SHIFTS;
@@ -1532,23 +1571,45 @@
     function closeModalIfBackdrop(e, id) { if (e.target && e.target.id === id) closeOverlay(id); }
 
     function autoFillDemo() {
+      // Fill the calendar with available backlog jobs, consuming inventory, and respecting the
+      // "no same job on same employee" rule.
       const weekDays = getWeekMonToSun(anchorDate);
       const shifts = SHIFTS;
       const resList = resources;
 
-      let ji = 0;
+      const jobIds = jobs.map(j => j.id);
+      let cursor = 0;
+
       resList.forEach(r => {
         weekDays.forEach(d => {
           shifts.forEach(s => {
-            if (ji >= jobs.length) return;
+            // Find next available job that is not already assigned to this resource
+            let tries = 0;
+            let picked = null;
+
+            while (tries < jobIds.length) {
+              const jid = jobIds[cursor % jobIds.length];
+              cursor++;
+              tries++;
+
+              if (Number(jobInventory[jid] || 0) <= 0) continue;
+              if (assignments.some(a => a.resourceId === r.id && a.jobId === jid)) continue;
+
+              picked = jid;
+              break;
+            }
+
+            if (!picked) return;
+
+            jobInventory[picked] = Number(jobInventory[picked] || 0) - 1;
+
             assignments.push({
               id: `A-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-              jobId: jobs[ji].id,
+              jobId: picked,
               resourceId: r.id,
               dayKey: d.key,
               shiftKey: s.key
             });
-            ji++;
           });
         });
       });
@@ -1560,6 +1621,7 @@
     function resetDemo() {
       resources = structuredClone(demoResources);
       jobs = structuredClone(demoJobs);
+      jobInventory = Object.fromEntries(jobs.map(j => [j.id, 1]));
       assignments = [];
       dayRanges = [];
       shiftFilter = "both";
