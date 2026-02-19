@@ -13,6 +13,8 @@
       --teal: #025064;
       --light-teal: #317d9b;
       --aqua: #90d2b5;
+      --job-label: #90d2b5;
+      --holiday-label: #ff8873;
       --light-gray: #eef2f5;
 
       --grid: #cfd8de;
@@ -314,7 +316,7 @@
       border-radius: 10px;
       padding: 6px 8px;
       border: 1px solid rgba(0,43,58,0.20);
-      background: rgba(49,125,155,0.18);
+      background: rgba(144, 210, 181, 0.35);
       cursor: grab;
       display:flex;
       align-items:center;
@@ -347,7 +349,7 @@
 
     .mini.holiday{
       border-color: rgba(0,43,58,0.20);
-      background: rgba(144,210,181,0.55);
+      background: rgba(255, 136, 115, 0.35);
       cursor: grab;
     }
     .mini.leave{
@@ -356,7 +358,7 @@
     }
     /* Use approved colors for leave too, give it teal tint */
     .mini.leave{
-      background: rgba(2,80,100,0.18);
+      background: rgba(49, 125, 155, 0.20);
     }
 
     /* Leave actions */
@@ -469,7 +471,7 @@
     <img class="logo" src="assets/epicor-logo.svg" alt="Epicor" onerror="this.style.display='none'"/>
     <div class="title-wrap">
       <h1>Weekly Resource Calendar</h1>
-      <div class="subtitle">Leave label optional, move without duplicate, resize by mouse, delete button</div>
+      <div class="subtitle">Weekly roster demo <span id="appVersion"></span></div>
     </div>
   </div>
 
@@ -583,13 +585,16 @@
   </div>
 
   <script>
+    const APP_VERSION = "v0.9.0";
+
     const PHOTO_BASE = "assets/Employees";
+    const PHOTO_BASE_ALT = "assets/employees";
 
     const demoResources = [
-      { id: "EMP001", name: "John Smith", group: "Assembly", photo: `${PHOTO_BASE}/EMP001.png` },
-      { id: "EMP002", name: "Sarah Lee", group: "Welding",  photo: `${PHOTO_BASE}/EMP002.png` },
-      { id: "EMP003", name: "Michael Tran", group: "Paint",   photo: `${PHOTO_BASE}/EMP003.png` },
-      { id: "EMP004", name: "Aisha Khan", group: "Assembly",  photo: `${PHOTO_BASE}/EMP004.png` }
+      { id: "EMP001", name: "John Smith", group: "Assembly", photo: `${PHOTO_BASE}/EMP001.png`, photoAlt: `${PHOTO_BASE_ALT}/EMP001.png` },
+      { id: "EMP002", name: "Sarah Lee", group: "Welding",  photo: `${PHOTO_BASE}/EMP002.png`, photoAlt: `${PHOTO_BASE_ALT}/EMP002.png` },
+      { id: "EMP003", name: "Michael Tran", group: "Paint",   photo: `${PHOTO_BASE}/EMP003.png`, photoAlt: `${PHOTO_BASE_ALT}/EMP003.png` },
+      { id: "EMP004", name: "Aisha Khan", group: "Assembly",  photo: `${PHOTO_BASE}/EMP004.png`, photoAlt: `${PHOTO_BASE_ALT}/EMP004.png` }
     ];
 
     const demoJobs = [
@@ -644,6 +649,10 @@
     }
     const weekDays = getWeekMonToSun();
 
+    // Show version
+    const verEl = document.getElementById("appVersion");
+    if (verEl) verEl.textContent = APP_VERSION;
+
     function makeCellKey(resourceId, dayKey, shiftKey) {
       return `${resourceId}|${dayKey}|${shiftKey}`;
     }
@@ -656,6 +665,14 @@
       shiftFilter = val;
       renderBoard();
     }
+
+
+    function shouldRenderRangesInShift(shiftKey) {
+      // If only night is visible, render ranges in night row. Otherwise render in day row.
+      if (shiftFilter === "night") return shiftKey === "night";
+      return shiftKey === "day";
+    }
+
 
     function inRange(dayKey, startKey, endKey) {
       return dayKey >= startKey && dayKey <= endKey;
@@ -742,7 +759,7 @@
             av.className = "avatar";
             av.innerHTML = `
               <img src="${escapeHtml(r.photo)}" alt="${escapeHtml(r.name)}"
-                   onerror="this.remove(); this.parentElement.textContent='${escapeHtml(initials(r.name))}'" />
+                   onerror="handlePhotoError(this, '${escapeHtml(initials(r.name))}', '${escapeHtml(r.photoAlt || '')}')" />
             `;
 
             const txt = document.createElement("div");
@@ -778,7 +795,7 @@
             top.className = "daycell-top";
 
             // show plus on Day row only
-            if (s.key === "day") {
+            if (shouldRenderRangesInShift(s.key)) {
               const plus = document.createElement("button");
               plus.className = "plus-btn";
               plus.type = "button";
@@ -808,7 +825,7 @@
             });
 
             // IMPORTANT: show leave/holiday only on DAY row to avoid duplication look
-            if (s.key === "day") {
+            if (shouldRenderRangesInShift(s.key)) {
               const rs = rangesFor(r.id, d.key);
               rs.forEach(range => dz.appendChild(renderRangeMini(range, r, d)));
             }
@@ -1049,7 +1066,7 @@ function onResizePointerMove(ev) {
 
   // Resize only based on Day shift row so it is consistent with range rendering
   if (resourceId !== resizeState.resourceId) return;
-  if (shiftKey !== "day") return;
+  if (!shouldRenderRangesInShift(shiftKey)) return;
 
   const r = dayRanges.find(x => x.id === resizeState.rangeId);
   if (!r) return;
@@ -1254,6 +1271,25 @@ function onResizePointerEnd() {
     }
 
     function safeParse(s) { try { return JSON.parse(s); } catch { return null; } }
+
+    
+    function handlePhotoError(imgEl, fallbackText, altSrc) {
+      try {
+        if (!imgEl) return;
+        const tried = imgEl.dataset && imgEl.dataset.triedAlt === "1";
+        if (!tried && altSrc) {
+          imgEl.dataset.triedAlt = "1";
+          imgEl.src = altSrc;
+          return;
+        }
+        // fallback to initials
+        const parent = imgEl.parentElement;
+        imgEl.remove();
+        if (parent) parent.textContent = fallbackText || "";
+      } catch {
+        // ignore
+      }
+    }
 
     function escapeHtml(s) {
       return String(s ?? "")
