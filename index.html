@@ -1,1313 +1,333 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Epicor Weekly Resource Calendar</title>
+<meta charset="UTF-8">
+<title>Epicor Weekly Planner</title>
 
-  <style>
-    :root{
-      /* Approved palette only */
-      --dark-petrol: #002b3a;
-      --petrol: #053c55;
-      --teal: #025064;
-      --light-teal: #317d9b;
-      --aqua: #90d2b5;
-      --job-label: #90d2b5;
-      --holiday-label: #ff8873;
-      --light-gray: #eef2f5;
+<style>
+:root{
+ --job:#90d2b5;
+ --holiday:#ff8873;
+ --leave:#ffe9b3;
+ --grid:#d9d9d9;
+ --bg:#f5f7f8;
+ --primary:#053c55;
+}
 
-      --grid: #cfd8de;
-      --bg: var(--light-gray);
-      --card: #ffffff;
-      --text: #000000;
-      --shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-      --radius: 14px;
-    }
+body{
+ margin:0;
+ font-family:Segoe UI, Arial;
+ background:var(--bg);
+}
 
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--text); }
+header{
+ background:var(--primary);
+ color:white;
+ padding:14px 20px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+}
 
-    .topbar{
-      background: linear-gradient(90deg, var(--petrol), var(--dark-petrol));
-      color: #fff;
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .logo{ height: 26px; width: auto; display:block; }
-    .title-wrap{ display:flex; flex-direction:column; line-height:1.15; }
-    .title-wrap h1{ margin:0; font-size: 18px; font-weight: 800; letter-spacing: 0.2px; }
-    .title-wrap .subtitle{ font-size: 12px; opacity: 0.9; }
+h1{margin:0;font-size:18px;}
+.version{font-size:12px;opacity:.8;}
 
-    .container{ max-width: 1800px; margin: 16px auto; padding: 0 16px 22px; }
+.controls{
+ padding:10px 20px;
+ display:flex;
+ gap:20px;
+ background:white;
+ border-bottom:1px solid var(--grid);
+}
 
-    .layout{
-      display: grid;
-      grid-template-columns: 380px 1fr;
-      gap: 12px;
-      align-items: start;
-    }
+select{
+ padding:6px;
+}
 
-    .card{
-      background: var(--card);
-      border: 1px solid var(--grid);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
+.board{
+ display:grid;
+ grid-template-columns:260px 100px repeat(7,1fr);
+}
 
-    .card-header{
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--grid);
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 12px;
-      background: #fff;
-    }
+.cell{
+ border-right:1px solid var(--grid);
+ border-bottom:1px solid var(--grid);
+ padding:6px;
+ min-height:80px;
+ background:white;
+ position:relative;
+}
 
-    .card-header .heading{ font-size: 13px; font-weight: 900; margin:0; }
-    .card-header .hint{ font-size: 12px; margin-top: 3px; opacity: 0.75; }
+.header{
+ background:#eef2f5;
+ font-weight:600;
+}
 
-    .controls{ display:flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
+.resource{
+ display:flex;
+ align-items:center;
+ gap:10px;
+}
 
-    .btn{
-      border: 1px solid var(--grid);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-weight: 900;
-      font-size: 12px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      user-select: none;
-      white-space: nowrap;
-      background: #fff;
-      color: #000;
-    }
-    .btn:active{ transform: translateY(1px); }
+.avatar{
+ width:42px;
+ height:42px;
+ border-radius:8px;
+ overflow:hidden;
+ background:#ddd;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ font-weight:bold;
+}
 
-    .btn-primary{
-      background: var(--teal);
-      border-color: var(--teal);
-      color: #fff;
-    }
-    .btn-warn{
-      background: var(--aqua);
-      border-color: var(--aqua);
-      color: #000;
-    }
+.avatar img{
+ width:100%;
+ height:100%;
+ object-fit:cover;
+}
 
-    .select{
-      border: 1px solid var(--grid);
-      background: #fff;
-      border-radius: 10px;
-      padding: 9px 10px;
-      font-weight: 900;
-      font-size: 12px;
-      color: #000;
-      outline: none;
-      cursor: pointer;
-    }
+.job{
+ background:var(--job);
+ padding:4px 6px;
+ border-radius:6px;
+ font-size:12px;
+ margin-bottom:4px;
+ cursor:grab;
+}
 
-    /* Backlog */
-    .backlog{
-      padding: 10px 12px 14px;
-      display:flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .job{
-      border: 1px solid var(--grid);
-      border-radius: 12px;
-      padding: 10px 10px;
-      background: #fff;
-      box-shadow: 0 10px 18px rgba(0,0,0,0.06);
-      cursor: grab;
-    }
-    .job:active{ cursor: grabbing; }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--grid);
-      font-size: 11px;
-      background: #fff;
-      color: #000;
-      font-weight: 900;
-    }
-    .job .top{
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .job .grid2{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px 10px;
-      font-size: 12px;
-    }
-    .job .grid2 .k{ opacity: 0.7; font-weight: 900; }
-    .job .grid2 .v{ font-weight: 900; }
+.range{
+ padding:4px 6px;
+ border-radius:6px;
+ font-size:12px;
+ margin-bottom:4px;
+ cursor:pointer;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+}
 
-    /* Board */
-    .board-wrap{
-      padding: 10px 12px 14px;
-      overflow: auto;
-      background: #fff;
-    }
+.holiday{ background:var(--holiday); }
+.leave{ background:var(--leave); }
 
-    .excel{
-      min-width: 1400px;
-      border: 1px solid var(--grid);
-      border-radius: 12px;
-      overflow: hidden;
-      background: #fff;
-    }
+.delete-btn{
+ font-size:11px;
+ cursor:pointer;
+ margin-left:6px;
+}
 
-    /* Resource | Shift | 7 days */
-    .grid{
-      display:grid;
-      grid-template-columns: 320px 120px repeat(7, minmax(170px, 1fr));
-    }
+.modal{
+ position:fixed;
+ inset:0;
+ background:rgba(0,0,0,.4);
+ display:none;
+ align-items:center;
+ justify-content:center;
+}
 
-    .cell{
-      border-right: 1px solid var(--grid);
-      border-bottom: 1px solid var(--grid);
-      padding: 10px;
-      background: #fff;
-      min-height: 78px;
-    }
+.modal-box{
+ background:white;
+ width:520px;
+ padding:20px;
+ border-radius:10px;
+}
 
-    .cell.header{
-      background: var(--light-gray);
-      font-weight: 900;
-      font-size: 12px;
-      color: #000;
-      min-height: unset;
-      padding: 10px;
-      position: sticky;
-      top: 0;
-      z-index: 5;
-    }
-    .cell.header.weekend{
-      background: var(--aqua);
-    }
-
-    .cell.resource{
-      background: #fff;
-      position: sticky;
-      left: 0;
-      z-index: 4;
-    }
-
-    .cell.shift{
-      background: #fff;
-      position: sticky;
-      left: 320px;
-      z-index: 4;
-      padding: 10px;
-      font-weight: 900;
-      font-size: 12px;
-      opacity: 0.85;
-    }
-
-    .corner{
-      position: sticky;
-      top: 0;
-      left: 0;
-      z-index: 7;
-      background: var(--light-gray);
-    }
-    .corner-shift{
-      position: sticky;
-      top: 0;
-      left: 320px;
-      z-index: 7;
-      background: var(--light-gray);
-    }
-
-    .resource-row{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-    }
-
-    .avatar{
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      border: 1px solid var(--grid);
-      background: #fff;
-      overflow: hidden;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight: 900;
-      color: var(--petrol);
-      flex: 0 0 auto;
-    }
-    .avatar img{ width:100%; height:100%; object-fit: cover; display:block; }
-
-    .rname{ font-weight: 900; font-size: 12px; }
-    .rsub{ font-weight: 900; font-size: 11px; opacity: 0.7; margin-top: 2px; }
-
-    .daycell{
-      display:flex;
-      flex-direction: column;
-      gap: 6px;
-      height: 100%;
-    }
-
-    .daycell-top{
-      display:flex;
-      justify-content:flex-end;
-      align-items:center;
-      gap: 8px;
-      height: 22px;
-    }
-
-    .plus-btn{
-      width: 22px;
-      height: 22px;
-      border-radius: 7px;
-      border: 1px solid var(--teal);
-      background: rgba(2,80,100,0.10);
-      color: #000;
-      font-weight: 900;
-      font-size: 16px;
-      line-height: 18px;
-      cursor: pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      user-select: none;
-    }
-
-    .dropzone{
-      flex: 1 1 auto;
-      min-height: 44px;
-      padding: 6px;
-      border: 1px dashed rgba(2,80,100,0.35);
-      background: rgba(49,125,155,0.06);
-      border-radius: 10px;
-      display:flex;
-      flex-direction: column;
-      gap: 6px;
-      transition: background 120ms ease, border-color 120ms ease;
-    }
-    .dropzone.weekend{
-      background: rgba(144,210,181,0.18);
-      border-color: rgba(2,80,100,0.30);
-    }
-    .dropzone.over{
-      background: rgba(49,125,155,0.14);
-      border-color: rgba(2,80,100,0.55);
-    }
-
-    /* One line calendar item */
-    .mini{
-      border-radius: 10px;
-      padding: 6px 8px;
-      border: 1px solid rgba(0,43,58,0.20);
-      background: rgba(144, 210, 181, 0.35);
-      cursor: grab;
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 10px;
-      position: relative;
-      min-height: 32px;
-    }
-    .mini:active{ cursor: grabbing; }
-
-    .mini .line{
-      font-size: 12px;
-      font-weight: 900;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      flex: 1 1 auto;
-      min-width: 0;
-    }
-    .mini .pill{
-      font-size: 10.5px;
-      font-weight: 900;
-      border: 1px solid rgba(0,43,58,0.20);
-      border-radius: 999px;
-      padding: 2px 6px;
-      background: #fff;
-      flex: 0 0 auto;
-      color: #000;
-    }
-
-    .mini.holiday{
-      border-color: rgba(0,43,58,0.20);
-      background: rgba(255, 136, 115, 0.35);
-      cursor: grab;
-    }
-    .mini.leave{
-      border-color: rgba(0,43,58,0.20);
-      background: rgba(252,221,0,0.0); /* not allowed, so do NOT use */
-    }
-    /* Use approved colors for leave too, give it teal tint */
-    .mini.leave{
-      background: rgba(49, 125, 155, 0.20);
-    }
-
-    /* Leave actions */
-    .icon-btn{
-      border: 1px solid rgba(0,43,58,0.20);
-      background: #fff;
-      width: 22px;
-      height: 22px;
-      border-radius: 8px;
-      cursor: pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size: 12px;
-      user-select:none;
-      flex: 0 0 auto;
-    }
-
-    /* Resize handle on right edge */
-    .resize-handle{
-      width: 10px;
-      height: 22px;
-      border-radius: 7px;
-      border: 1px solid rgba(0,43,58,0.20);
-      background: rgba(238,242,245,0.9);
-      cursor: ew-resize;
-      flex: 0 0 auto;
-    }
-
-    .footer-note{
-      padding: 10px 14px;
-      border-top: 1px solid var(--grid);
-      font-size: 12px;
-      opacity: 0.75;
-      background: #fff;
-    }
-
-    /* Modals */
-    .modal-overlay{
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.35);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      z-index: 50;
-    }
-    .modal{
-      width: 640px;
-      max-width: 100%;
-      background: #fff;
-      border-radius: 16px;
-      border: 1px solid var(--grid);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.22);
-      overflow: hidden;
-    }
-    .modal-header{
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--grid);
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 12px;
-      background: var(--light-gray);
-    }
-    .modal-title{ font-weight: 900; font-size: 13px; margin: 0; color:#000; }
-    .modal-body{ padding: 14px; display:flex; flex-direction: column; gap: 10px; font-size: 12px; color:#000; }
-    .modal-actions{
-      padding: 12px 14px;
-      border-top: 1px solid var(--grid);
-      display:flex;
-      justify-content: flex-end;
-      gap: 8px;
-      background: #fff;
-    }
-    .kv{ display:grid; grid-template-columns: 220px 1fr; gap: 8px 10px; align-items: start; }
-    .k{ opacity: 0.7; font-weight: 900; }
-    .v{ font-weight: 900; }
-
-    .form-grid{
-      display:grid;
-      grid-template-columns: 180px 1fr;
-      gap: 10px 12px;
-      align-items:center;
-    }
-    .input, .select2, .textarea{
-      width: 100%;
-      padding: 10px 10px;
-      border-radius: 10px;
-      border: 1px solid var(--grid);
-      font-weight: 800;
-      font-size: 12px;
-      outline: none;
-      color:#000;
-      background:#fff;
-    }
-    .textarea{ min-height: 70px; resize: vertical; }
-    .muted{ opacity: 0.75; font-weight: 800; font-size: 12px; }
-
-    @media (max-width: 1100px){
-      .layout{ grid-template-columns: 1fr; }
-      .excel{ min-width: 1200px; }
-    }
-  </style>
+.modal h3{margin-top:0;}
+button{padding:6px 10px;margin-top:10px;}
+</style>
 </head>
 
 <body>
-  <div class="topbar">
-    <img class="logo" src="assets/epicor-logo.svg" alt="Epicor" onerror="this.style.display='none'"/>
-    <div class="title-wrap">
-      <h1>Weekly Resource Calendar</h1>
-      <div class="subtitle">Weekly roster demo <span id="appVersion"></span></div>
-    </div>
-  </div>
 
-  <div class="container">
-    <div class="layout">
-      <!-- Backlog -->
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="heading">Job Backlog</div>
-            <div class="hint">Drag a job onto a resource and day, shift is row based</div>
-          </div>
-          <div class="controls">
-            <button class="btn" onclick="resetDemo()">Reset</button>
-            <button class="btn btn-warn" onclick="autoFillDemo()">Auto Fill</button>
-          </div>
-        </div>
-
-        <div class="backlog" id="backlog"></div>
-
-        <div class="footer-note">
-          Demo only, later Epicor REST will populate resources and update schedule.
-        </div>
-      </div>
-
-      <!-- Board -->
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="heading">Schedule, Monday to Sunday</div>
-            <div class="hint">Shift filter controls row visibility</div>
-          </div>
-          <div class="controls">
-            <label style="font-size:12px; font-weight:900; color:#000;">Shift Filter</label>
-            <select id="shiftFilter" class="select" onchange="setShiftFilter(this.value)">
-              <option value="both">Day and Night</option>
-              <option value="day">Day only</option>
-              <option value="night">Night only</option>
-            </select>
-            <button class="btn btn-primary" onclick="saveChanges()">Save Changes</button>
-          </div>
-        </div>
-
-        <div class="board-wrap">
-          <div class="excel" id="board"></div>
-        </div>
-
-        <div class="footer-note">
-          Leave, drag to move. Resize with the small handle. Delete with the trash icon.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Details modal -->
-  <div class="modal-overlay" id="detailsOverlay" onclick="closeModalIfBackdrop(event,'detailsOverlay')">
-    <div class="modal" role="dialog" aria-modal="true">
-      <div class="modal-header">
-        <div class="modal-title" id="detailsTitle">Details</div>
-        <button class="btn" onclick="closeOverlay('detailsOverlay')">Close</button>
-      </div>
-      <div class="modal-body" id="detailsBody"></div>
-      <div class="modal-actions">
-        <button class="btn" onclick="closeOverlay('detailsOverlay')">Done</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Add Holiday/Leave modal -->
-  <div class="modal-overlay" id="addOverlay" onclick="closeModalIfBackdrop(event,'addOverlay')">
-    <div class="modal" role="dialog" aria-modal="true">
-      <div class="modal-header">
-        <div class="modal-title" id="addTitle">Add</div>
-        <button class="btn" onclick="closeOverlay('addOverlay')">Close</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="muted" id="addContext"></div>
-
-        <div class="form-grid">
-          <div class="k">Type</div>
-          <select class="select2" id="addType" onchange="onAddTypeChange()">
-            <option value="holiday">Holiday</option>
-            <option value="leave">Leave</option>
-          </select>
-
-          <div class="k">Holiday</div>
-          <select class="select2" id="holidayType">
-            <option value="public">Public Holiday</option>
-            <option value="company">Company Holiday</option>
-            <option value="site">Site Shutdown</option>
-            <option value="other">Other</option>
-          </select>
-
-          <div class="k">Label</div>
-          <input class="input" id="addLabel" placeholder="Optional for leave, required for holiday" />
-
-          <div class="k">Apply to</div>
-          <div class="muted">Whole day (Day and Night)</div>
-
-          <div class="k">Notes</div>
-          <textarea class="textarea" id="addNotes" placeholder="Optional notes"></textarea>
-        </div>
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn" onclick="closeOverlay('addOverlay')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitAdd()">Add</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const APP_VERSION = "v0.9.0";
-
-    const PHOTO_BASE = "assets/Employees";
-    const PHOTO_BASE_ALT = "assets/employees";
-
-    const demoResources = [
-      { id: "EMP001", name: "John Smith", group: "Assembly", photo: `${PHOTO_BASE}/EMP001.png`, photoAlt: `${PHOTO_BASE_ALT}/EMP001.png` },
-      { id: "EMP002", name: "Sarah Lee", group: "Welding",  photo: `${PHOTO_BASE}/EMP002.png`, photoAlt: `${PHOTO_BASE_ALT}/EMP002.png` },
-      { id: "EMP003", name: "Michael Tran", group: "Paint",   photo: `${PHOTO_BASE}/EMP003.png`, photoAlt: `${PHOTO_BASE_ALT}/EMP003.png` },
-      { id: "EMP004", name: "Aisha Khan", group: "Assembly",  photo: `${PHOTO_BASE}/EMP004.png`, photoAlt: `${PHOTO_BASE_ALT}/EMP004.png` }
-    ];
-
-    const demoJobs = [
-      { kind: "job", id: "JB-1", jobNumber: "J-10021", asmNumber: "10", opNumber: "020", opDescription: "Wiring", partNumber: "PN-AX12", customerNumber: "CUST-1000", partDescription: "Switchboard enclosure", quantity: 2, durationHours: 6 },
-      { kind: "job", id: "JB-2", jobNumber: "J-10034", asmNumber: "10", opNumber: "030", opDescription: "Terminate", partNumber: "PN-WR08", customerNumber: "CUST-1042", partDescription: "Panel wiring kit", quantity: 4, durationHours: 4 },
-      { kind: "job", id: "JB-3", jobNumber: "J-10040", asmNumber: "20", opNumber: "010", opDescription: "FAT", partNumber: "PN-FAT01", customerNumber: "CUST-1000", partDescription: "Factory acceptance test", quantity: 1, durationHours: 3 },
-      { kind: "job", id: "JB-4", jobNumber: "J-10055", asmNumber: "05", opNumber: "010", opDescription: "Cut Drill", partNumber: "PN-SM22", customerNumber: "CUST-1108", partDescription: "Sheet metal set", quantity: 6, durationHours: 5 },
-      { kind: "job", id: "JB-5", jobNumber: "J-10080", asmNumber: "30", opNumber: "015", opDescription: "Prep", partNumber: "PN-PC09", customerNumber: "CUST-1205", partDescription: "Powder coat prep batch", quantity: 3, durationHours: 4 },
-      { kind: "job", id: "JB-6", jobNumber: "J-10110", asmNumber: "40", opNumber: "005", opDescription: "Pack", partNumber: "PN-PK02", customerNumber: "CUST-1310", partDescription: "Packaging and labels", quantity: 10, durationHours: 2 }
-    ];
-
-    const SHIFTS = [
-      { key: "day", label: "Day" },
-      { key: "night", label: "Night" }
-    ];
-
-    let resources = structuredClone(demoResources);
-    let backlogJobs = structuredClone(demoJobs);
-
-    // schedule cellKey -> array of jobs only
-    // cellKey: resourceId|YYYY-MM-DD|shiftKey
-    let schedule = {};
-
-    // ranges apply to whole day (both shifts), but we DISPLAY them only on Day row to avoid duplication look
-    // { id, kind: 'holiday'|'leave', resourceId, startDayKey, endDayKey, label, holidayType?, notes? }
-    let dayRanges = [];
-
-    let shiftFilter = "both";
-    let addCtx = null;
-
-    // resize state
-    let resizeState = null; // { rangeId, resourceId, anchorDayKey, startDayKey, endDayKey }
-
-    function getWeekMonToSun() {
-      const now = new Date();
-      const dow = now.getDay();
-      const diffToMonday = (dow === 0 ? -6 : 1) - dow;
-      const monday = new Date(now);
-      monday.setDate(now.getDate() + diffToMonday);
-      monday.setHours(0,0,0,0);
-
-      const days = [];
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(monday);
-        d.setDate(monday.getDate() + i);
-        const key = d.toISOString().slice(0,10);
-        const label = d.toLocaleDateString(undefined, { weekday: "short", day: "2-digit", month: "short" });
-        const isWeekend = d.getDay() === 6 || d.getDay() === 0;
-        days.push({ key, label, isWeekend });
-      }
-      return days;
-    }
-    const weekDays = getWeekMonToSun();
-
-    // Show version
-    const verEl = document.getElementById("appVersion");
-    if (verEl) verEl.textContent = APP_VERSION;
-
-    function makeCellKey(resourceId, dayKey, shiftKey) {
-      return `${resourceId}|${dayKey}|${shiftKey}`;
-    }
-    function getCellItems(cellKey) {
-      if (!schedule[cellKey]) schedule[cellKey] = [];
-      return schedule[cellKey];
-    }
-
-    function setShiftFilter(val) {
-      shiftFilter = val;
-      renderBoard();
-    }
-
-
-    function shouldRenderRangesInShift(shiftKey) {
-      // If only night is visible, render ranges in night row. Otherwise render in day row.
-      if (shiftFilter === "night") return shiftKey === "night";
-      return shiftKey === "day";
-    }
-
-
-    function inRange(dayKey, startKey, endKey) {
-      return dayKey >= startKey && dayKey <= endKey;
-    }
-    function rangesFor(resourceId, dayKey) {
-      return dayRanges.filter(r => r.resourceId === resourceId && inRange(dayKey, r.startDayKey, r.endDayKey));
-    }
-
-    function daySpan(startKey, endKey) {
-      const a = new Date(startKey + "T00:00:00");
-      const b = new Date(endKey + "T00:00:00");
-      const diff = Math.round((b - a) / (1000*60*60*24));
-      return Math.max(0, diff);
-    }
-    function addDaysIso(dayKey, plusDays) {
-      const d = new Date(dayKey + "T00:00:00");
-      d.setDate(d.getDate() + plusDays);
-      return d.toISOString().slice(0,10);
-    }
-
-    function clampToWeek(dayKey) {
-      const min = weekDays[0].key;
-      const max = weekDays[6].key;
-      if (dayKey < min) return min;
-      if (dayKey > max) return max;
-      return dayKey;
-    }
-
-    function render() {
-      renderBacklog();
-      renderBoard();
-    }
-
-    function renderBacklog() {
-      const el = document.getElementById("backlog");
-      el.innerHTML = "";
-      backlogJobs.forEach(job => el.appendChild(renderBacklogCard(job)));
-      if (backlogJobs.length === 0) {
-        const empty = document.createElement("div");
-        empty.style.opacity = "0.75";
-        empty.style.fontSize = "12px";
-        empty.textContent = "Backlog empty, all jobs are scheduled.";
-        el.appendChild(empty);
-      }
-    }
-
-    function renderBoard() {
-      const board = document.getElementById("board");
-      board.innerHTML = "";
-
-      const grid = document.createElement("div");
-      grid.className = "grid";
-
-      // headers
-      const corner = document.createElement("div");
-      corner.className = "cell header corner";
-      corner.textContent = "Resource";
-      grid.appendChild(corner);
-
-      const shiftHead = document.createElement("div");
-      shiftHead.className = "cell header corner-shift";
-      shiftHead.textContent = "Shift";
-      grid.appendChild(shiftHead);
-
-      weekDays.forEach(d => {
-        const h = document.createElement("div");
-        h.className = `cell header${d.isWeekend ? " weekend" : ""}`;
-        h.textContent = d.label;
-        grid.appendChild(h);
-      });
-
-      resources.forEach(r => {
-        SHIFTS.forEach((s, sIdx) => {
-          if (shiftFilter === "day" && s.key === "night") return;
-          if (shiftFilter === "night" && s.key === "day") return;
-
-          // Resource cell, placed once for the first visible shift row
-          if ((shiftFilter === "both" && sIdx === 0) || (shiftFilter !== "both" && s.key === shiftFilter)) {
-            const rc = document.createElement("div");
-            rc.className = "cell resource";
-            rc.style.gridRow = (shiftFilter === "both") ? "span 2" : "span 1";
-
-            const av = document.createElement("div");
-            av.className = "avatar";
-            av.innerHTML = `
-              <img src="${escapeHtml(r.photo)}" alt="${escapeHtml(r.name)}"
-                   onerror="handlePhotoError(this, '${escapeHtml(initials(r.name))}', '${escapeHtml(r.photoAlt || '')}')" />
-            `;
-
-            const txt = document.createElement("div");
-            txt.innerHTML = `
-              <div class="rname">${escapeHtml(r.name)}</div>
-              <div class="rsub">${escapeHtml(r.group)}, ${escapeHtml(r.id)}</div>
-            `;
-
-            const row = document.createElement("div");
-            row.className = "resource-row";
-            row.appendChild(av);
-            row.appendChild(txt);
-
-            rc.appendChild(row);
-            grid.appendChild(rc);
-          }
-
-          // shift column
-          const sc = document.createElement("div");
-          sc.className = "cell shift";
-          sc.textContent = s.label;
-          grid.appendChild(sc);
-
-          // day cells
-          weekDays.forEach(d => {
-            const c = document.createElement("div");
-            c.className = "cell";
-
-            const wrap = document.createElement("div");
-            wrap.className = "daycell";
-
-            const top = document.createElement("div");
-            top.className = "daycell-top";
-
-            // show plus on Day row only
-            if (shouldRenderRangesInShift(s.key)) {
-              const plus = document.createElement("button");
-              plus.className = "plus-btn";
-              plus.type = "button";
-              plus.title = "Add holiday or leave";
-              plus.textContent = "+";
-              plus.onclick = () => openAddForm(r, d);
-              top.appendChild(plus);
-            }
-            wrap.appendChild(top);
-
-            const dz = document.createElement("div");
-            dz.className = `dropzone${d.isWeekend ? " weekend" : ""}`;
-            dz.dataset.resourceId = r.id;
-            dz.dataset.dayKey = d.key;
-            dz.dataset.shiftKey = s.key;
-
-            dz.addEventListener("dragover", (e) => { e.preventDefault(); dz.classList.add("over"); });
-            dz.addEventListener("dragleave", () => dz.classList.remove("over"));
-            dz.addEventListener("drop", (e) => {
-              e.preventDefault();
-              dz.classList.remove("over");
-              const payload = safeParse(e.dataTransfer.getData("text/plain"));
-              if (!payload) return;
-
-              const targetCellKey = makeCellKey(r.id, d.key, s.key);
-              handleDrop(payload, targetCellKey, r.id, d.key, s.key);
-            });
-
-            // IMPORTANT: show leave/holiday only on DAY row to avoid duplication look
-            if (shouldRenderRangesInShift(s.key)) {
-              const rs = rangesFor(r.id, d.key);
-              rs.forEach(range => dz.appendChild(renderRangeMini(range, r, d)));
-            }
-
-            // jobs for this shift
-            const cellKey = makeCellKey(r.id, d.key, s.key);
-            const items = getCellItems(cellKey);
-            items.forEach((it, idx) => dz.appendChild(renderJobMini(it, cellKey, idx, r, d, s)));
-
-            wrap.appendChild(dz);
-            c.appendChild(wrap);
-            grid.appendChild(c);
-          });
-        });
-      });
-
-      board.appendChild(grid);
-    }
-
-    function renderBacklogCard(job) {
-      const card = document.createElement("div");
-      card.className = "job";
-      card.draggable = true;
-
-      card.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/plain", JSON.stringify({
-          type: "job",
-          from: "backlog",
-          jobId: job.id
-        }));
-        e.dataTransfer.effectAllowed = "move";
-      });
-
-      card.innerHTML = `
-        <div class="top">
-          <div style="font-weight:900; font-size:12px;">${escapeHtml(job.jobNumber)} , ${escapeHtml(job.partNumber)}</div>
-          <span class="badge">${escapeHtml(job.durationHours + "h")}</span>
-        </div>
-
-        <div class="grid2">
-          <div class="k">Part</div><div class="v">${escapeHtml(job.partDescription)}</div>
-          <div class="k">Customer</div><div class="v">${escapeHtml(job.customerNumber)}</div>
-          <div class="k">Asm / Op</div><div class="v">${escapeHtml(job.asmNumber)} / ${escapeHtml(job.opNumber)} ${escapeHtml(job.opDescription)}</div>
-          <div class="k">Qty</div><div class="v">${escapeHtml(String(job.quantity))}</div>
-        </div>
-      `;
-      return card;
-    }
-
-    function renderJobMini(item, cellKey, indexInCell, resource, day, shift) {
-      const card = document.createElement("div");
-      card.className = "mini";
-      card.draggable = true;
-
-      card.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/plain", JSON.stringify({
-          type: "job",
-          from: "scheduled",
-          jobId: item.id,
-          sourceCellKey: cellKey,
-          sourceIndex: indexInCell
-        }));
-        e.dataTransfer.effectAllowed = "move";
-      });
-
-      card.onclick = (ev) => {
-        ev.stopPropagation();
-        openDetails(item, { resource, day, shift });
-      };
-
-      card.innerHTML = `
-        <div class="line">${escapeHtml(item.jobNumber)} , ${escapeHtml(item.partNumber)} , Asm ${escapeHtml(item.asmNumber)} Op ${escapeHtml(item.opNumber)}</div>
-        <div class="pill">${escapeHtml(item.durationHours + "h")}</div>
-      `;
-      return card;
-    }
-
-    function renderRangeMini(range, resource, day) {
-      const isLeave = range.kind === "leave";
-      const card = document.createElement("div");
-      card.className = `mini ${isLeave ? "leave" : "holiday"}`;
-      card.draggable = true;
-
-      // Drag move range (no duplicate, it is a single range object)
-      card.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/plain", JSON.stringify({
-          type: "range",
-          rangeId: range.id,
-          resourceId: range.resourceId,
-          mode: "move"
-        }));
-        e.dataTransfer.effectAllowed = "move";
-      });
-
-      card.onclick = (ev) => {
-        ev.stopPropagation();
-        openDetails(
-          { kind: range.kind, label: range.label, startDayKey: range.startDayKey, endDayKey: range.endDayKey, notes: range.notes, holidayType: range.holidayType },
-          { resource, day, shift: null }
-        );
-      };
-
-      const tag = (range.kind === "holiday") ? "HOL" : "LEAVE";
-      const label = (range.label && range.label.trim()) ? range.label.trim() : (range.kind === "leave" ? "Leave" : "Holiday");
-
-      const line = document.createElement("div");
-      line.className = "line";
-      line.textContent = `${tag} , ${label}`;
-
-      const pill = document.createElement("div");
-      pill.className = "pill";
-      pill.textContent = (range.startDayKey === range.endDayKey) ? "1d" : "rng";
-
-      card.appendChild(line);
-
-      // Leave: delete button + resize handle
-      if (isLeave) {
-        const del = document.createElement("button");
-        del.className = "icon-btn";
-        del.type = "button";
-        del.title = "Delete leave";
-        del.textContent = "🗑";
-        del.onclick = (ev) => {
-          ev.stopPropagation();
-          deleteRange(range.id);
-        };
-        card.appendChild(del);
-
-        const handle = document.createElement("div");
-handle.className = "resize-handle";
-handle.title = "Drag to stretch leave";
-handle.draggable = false;
-
-handle.addEventListener("dragstart", (e) => e.preventDefault());
-
-handle.addEventListener("pointerdown", (ev) => {
-  ev.preventDefault();
-  ev.stopPropagation();
-  startResizePointer(ev, range.id, range.resourceId);
-});
-
-card.appendChild(handle);
-      }
-
-      card.appendChild(pill);
-
-      return card;
-    }
-
-    function deleteRange(rangeId) {
-      dayRanges = dayRanges.filter(r => r.id !== rangeId);
-      renderBoard();
-    }
-
-    function handleDrop(payload, targetCellKey, targetResourceId, targetDayKey, targetShiftKey) {
-      if (!payload) return;
-
-      // Move range (leave or holiday)
-if (payload.type === "range") {
-  if (payload.resourceId !== targetResourceId) return;
-
-  const r = dayRanges.find(x => x.id === payload.rangeId);
-  if (!r) return;
-
-  // Ranges apply to the whole day, and we render them on the Day row only.
-  // If user drops on Night, still move to that day (so it stays visible).
-  const span = daySpan(r.startDayKey, r.endDayKey);
-
-  const start = clampToWeek(targetDayKey);
-  r.startDayKey = start;
-  r.endDayKey = clampToWeek(addDaysIso(start, span));
-
-  renderBoard();
-  return;
+<header>
+ <h1>Epicor Weekly Resource Planner</h1>
+ <div class="version">v2.0.0</div>
+</header>
+
+<div class="controls">
+ <label>Shift:
+  <select id="shiftFilter" onchange="renderBoard()">
+   <option value="both">Both</option>
+   <option value="Day">Day</option>
+   <option value="Night">Night</option>
+  </select>
+ </label>
+
+ <label>Department:
+  <select id="deptFilter" onchange="renderBoard()">
+   <option value="all">All</option>
+   <option value="Assembly">Assembly</option>
+   <option value="Welding">Welding</option>
+   <option value="Paint">Paint</option>
+  </select>
+ </label>
+</div>
+
+<div class="board" id="board"></div>
+
+<div class="modal" id="modal">
+ <div class="modal-box">
+   <h3 id="modalTitle"></h3>
+   <div id="modalBody"></div>
+   <button onclick="closeModal()">Close</button>
+ </div>
+</div>
+
+<script>
+const PHOTO_BASE="assets/Employees";
+
+const resources=[
+ {id:"EMP001",name:"John Smith",dept:"Assembly"},
+ {id:"EMP002",name:"Sarah Lee",dept:"Welding"},
+ {id:"EMP003",name:"Michael Tran",dept:"Paint"}
+];
+
+const jobs=[
+ {id:"J1",jobNumber:"J-10021",part:"PN-AX12",asm:"10",op:"020",opDesc:"Wiring",qty:2,dur:6},
+ {id:"J2",jobNumber:"J-10040",part:"PN-FAT01",asm:"20",op:"010",opDesc:"FAT",qty:1,dur:3}
+];
+
+let assignments=[];
+let ranges=[];
+let movingRange=null;
+
+function getWeek(){
+ const now=new Date();
+ const monday=new Date(now.setDate(now.getDate()-now.getDay()+1));
+ let arr=[];
+ for(let i=0;i<7;i++){
+  let d=new Date(monday);
+  d.setDate(monday.getDate()+i);
+  arr.push({key:d.toISOString().slice(0,10),label:d.toDateString().slice(0,10)});
+ }
+ return arr;
 }
 
-      // Jobs
-      if (payload.type !== "job") return;
+function renderBoard(){
+ const board=document.getElementById("board");
+ board.innerHTML="";
+ const days=getWeek();
+ const shiftFilter=document.getElementById("shiftFilter").value;
+ const deptFilter=document.getElementById("deptFilter").value;
 
-      if (payload.from === "backlog") {
-        const found = backlogJobs.find(j => j.id === payload.jobId);
-        if (!found) return;
+ board.appendChild(headerCell("Resource"));
+ board.appendChild(headerCell("Shift"));
+ days.forEach(d=>board.appendChild(headerCell(d.label)));
 
-        backlogJobs = backlogJobs.filter(j => j.id !== payload.jobId);
-        getCellItems(targetCellKey).push(found);
+ resources
+ .filter(r=>deptFilter==="all"||r.dept===deptFilter)
+ .forEach(r=>{
+  ["Day","Night"].forEach(shift=>{
+   if(shiftFilter!=="both"&&shift!==shiftFilter)return;
 
-        renderBacklog();
-        renderBoard();
-        return;
-      }
+   board.appendChild(resourceCell(r));
+   board.appendChild(headerCell(shift));
 
-      if (payload.from === "scheduled") {
-        const srcKey = payload.sourceCellKey;
-        const srcIdx = payload.sourceIndex;
-        if (!srcKey || srcKey === targetCellKey) return;
-
-        const srcItems = getCellItems(srcKey);
-        const moving = srcItems[srcIdx];
-        if (!moving) return;
-
-        srcItems.splice(srcIdx, 1);
-        getCellItems(targetCellKey).push(moving);
-
-        if (srcItems.length === 0) delete schedule[srcKey];
-        renderBoard();
-        return;
-      }
-    }
-
-    // Pointer resize leave by dragging handle, snap to day columns
-function startResizePointer(ev, rangeId, resourceId) {
-  const r = dayRanges.find(x => x.id === rangeId);
-  if (!r) return;
-
-  resizeState = { rangeId, resourceId };
-
-  // Capture pointer so we keep receiving events even if cursor leaves the handle
-  try { ev.target.setPointerCapture(ev.pointerId); } catch {}
-
-  document.body.style.userSelect = "none";
-
-  window.addEventListener("pointermove", onResizePointerMove);
-  window.addEventListener("pointerup", onResizePointerEnd, { once: true });
-}
-
-function onResizePointerMove(ev) {
-  if (!resizeState) return;
-
-  const el = document.elementFromPoint(ev.clientX, ev.clientY);
-  if (!el) return;
-
-  const dz = el.closest ? el.closest(".dropzone") : null;
-  if (!dz) return;
-
-  const resourceId = dz.dataset.resourceId;
-  const shiftKey = dz.dataset.shiftKey;
-  const dayKey = dz.dataset.dayKey;
-
-  // Resize only based on Day shift row so it is consistent with range rendering
-  if (resourceId !== resizeState.resourceId) return;
-  if (!shouldRenderRangesInShift(shiftKey)) return;
-
-  const r = dayRanges.find(x => x.id === resizeState.rangeId);
-  if (!r) return;
-
-  const target = clampToWeek(dayKey);
-
-  // Set end to target, allow shrinking
-  if (target >= r.startDayKey) {
-    r.endDayKey = target;
-  } else {
-    // If dragged left of start, swap
-    r.endDayKey = r.startDayKey;
-    r.startDayKey = target;
-  }
-
-  renderBoard();
-}
-
-function onResizePointerEnd() {
-  window.removeEventListener("pointermove", onResizePointerMove);
-  document.body.style.userSelect = "";
-  resizeState = null;
-  renderBoard();
-}
-
-    // Add modal
-    function openAddForm(resource, day) {
-      addCtx = { resource, day };
-
-      document.getElementById("addTitle").textContent = "Add holiday or leave";
-      document.getElementById("addContext").textContent =
-        `Resource: ${resource.name} (${resource.id}), Date: ${day.label}`;
-
-      document.getElementById("addType").value = "holiday";
-      document.getElementById("holidayType").value = "public";
-      document.getElementById("addLabel").value = "";
-      document.getElementById("addNotes").value = "";
-
-      onAddTypeChange();
-      openOverlay("addOverlay");
-    }
-
-    function onAddTypeChange() {
-      const type = document.getElementById("addType").value;
-      const holidaySelect = document.getElementById("holidayType");
-      holidaySelect.disabled = (type !== "holiday");
-    }
-
-    function submitAdd() {
-  if (!addCtx) return;
-
-  const typeEl = document.getElementById("addType");
-  const type = (typeEl && typeEl.value) ? typeEl.value : "holiday";
-
-  const hType = document.getElementById("holidayType")?.value || "public";
-  const labelRaw = (document.getElementById("addLabel")?.value || "").trim();
-  const notes = (document.getElementById("addNotes")?.value || "").trim();
-
-  // Holiday label required, Leave label optional
-  if (type === "holiday" && !labelRaw) {
-    alert("Holiday label is required.");
-    return;
-  }
-
-  const finalLabel = labelRaw || (type === "leave" ? "Leave" : "Holiday");
-
-  dayRanges.push({
-    id: `R-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-    kind: type,
-    resourceId: addCtx.resource.id,
-    startDayKey: addCtx.day.key,
-    endDayKey: addCtx.day.key,
-    label: finalLabel,
-    holidayType: (type === "holiday" ? hType : null),
-    notes: notes
+   days.forEach(d=>{
+    const c=document.createElement("div");
+    c.className="cell";
+    c.ondrop=e=>handleDrop(e,r.id,d.key,shift);
+    c.ondragover=e=>e.preventDefault();
+    c.onclick=()=>handleMove(d.key,r.id);
+    renderCellContent(c,r.id,d.key,shift);
+    board.appendChild(c);
+   });
   });
-
-  closeOverlay("addOverlay");
-  addCtx = null;
-  renderBoard();
+ });
 }
 
-// Details modal
-    function openDetails(item, ctx) {
-      const resource = ctx?.resource;
-      const day = ctx?.day;
-      const shift = ctx?.shift;
+function headerCell(text){
+ const d=document.createElement("div");
+ d.className="cell header";
+ d.textContent=text;
+ return d;
+}
 
-      const title = item.kind === "job" ? `${item.jobNumber}` : (item.label || "Details");
-      document.getElementById("detailsTitle").textContent = title;
+function resourceCell(r){
+ const c=document.createElement("div");
+ c.className="cell resource";
+ const avatar=document.createElement("div");
+ avatar.className="avatar";
+ const img=new Image();
+ img.src=`${PHOTO_BASE}/${r.id}.png`;
+ img.onerror=function(){img.src=`assets/employees/${r.id}.png`;};
+ avatar.appendChild(img);
+ const name=document.createElement("div");
+ name.innerHTML=`<b>${r.name}</b><br>${r.dept}`;
+ c.appendChild(avatar);
+ c.appendChild(name);
+ return c;
+}
 
-      const rows = [];
-      if (resource) rows.push(["Resource", `${resource.name} (${resource.id})`]);
-      if (day) rows.push(["Date", day.label]);
-      if (shift) rows.push(["Shift", shift.label]);
+function renderCellContent(cell,resId,day,shift){
+ assignments
+ .filter(a=>a.resId===resId&&a.day===day&&a.shift===shift)
+ .forEach(a=>{
+  const j=jobs.find(j=>j.id===a.jobId);
+  const div=document.createElement("div");
+  div.className="job";
+  div.draggable=true;
+  div.ondragstart=e=>e.dataTransfer.setData("job",a.jobId);
+  div.textContent=`${j.jobNumber} • ${j.part} • Op ${j.op}`;
+  div.onclick=e=>{e.stopPropagation();openJob(j);};
+  cell.appendChild(div);
+ });
 
-      if (item.kind === "job") {
-        rows.push(["Job Number", item.jobNumber || ""]);
-        rows.push(["Job Assembly Number", item.asmNumber || ""]);
-        rows.push(["Job Operation", `${item.opNumber || ""} ${item.opDescription || ""}`.trim()]);
-        rows.push(["Part Number", item.partNumber || ""]);
-        rows.push(["Customer Number", item.customerNumber || ""]);
-        rows.push(["Part Description", item.partDescription || ""]);
-        rows.push(["Quantity", String(item.quantity ?? "")]);
-        rows.push(["Duration", `${item.durationHours ?? ""} hours`]);
-      } else if (item.kind === "holiday") {
-        rows.push(["Type", "HOLIDAY"]);
-        rows.push(["Holiday Type", item.holidayType || ""]);
-        rows.push(["Label", item.label || ""]);
-        rows.push(["Range", `${item.startDayKey} to ${item.endDayKey}`]);
-        rows.push(["Applies", "Day and Night"]);
-        rows.push(["Notes", item.notes || ""]);
-      } else if (item.kind === "leave") {
-        rows.push(["Type", "LEAVE"]);
-        rows.push(["Label", item.label || ""]);
-        rows.push(["Range", `${item.startDayKey} to ${item.endDayKey}`]);
-        rows.push(["Applies", "Day and Night"]);
-        rows.push(["Notes", item.notes || ""]);
-      }
+ ranges
+ .filter(r=>r.resId===resId&&r.day===day)
+ .forEach(r=>{
+  const div=document.createElement("div");
+  div.className="range "+r.type;
+  div.innerHTML=`${r.label}<span class="delete-btn" onclick="deleteRange('${r.id}')">🗑</span>`;
+  div.onclick=e=>{e.stopPropagation();openRange(r);};
+  cell.appendChild(div);
+ });
+}
 
-      const body = document.getElementById("detailsBody");
-      body.innerHTML = `
-        <div class="kv">
-          ${rows.map(([k,v]) => `
-            <div class="k">${escapeHtml(k)}</div>
-            <div class="v">${escapeHtml(v)}</div>
-          `).join("")}
-        </div>
-      `;
-      openOverlay("detailsOverlay");
-    }
+function handleDrop(e,resId,day,shift){
+ const jobId=e.dataTransfer.getData("job");
+ if(!jobId)return;
+ assignments.push({jobId,resId,day,shift});
+ renderBoard();
+}
 
-    function openOverlay(id) { document.getElementById(id).style.display = "flex"; }
-    function closeOverlay(id) { document.getElementById(id).style.display = "none"; }
-    function closeModalIfBackdrop(e, id) { if (e.target && e.target.id === id) closeOverlay(id); }
+function openJob(j){
+ document.getElementById("modalTitle").textContent=j.jobNumber;
+ document.getElementById("modalBody").innerHTML=
+ `<b>Part:</b> ${j.part}<br>
+  <b>Assembly:</b> ${j.asm}<br>
+  <b>Operation:</b> ${j.op} ${j.opDesc}<br>
+  <b>Quantity:</b> ${j.qty}<br>
+  <b>Duration:</b> ${j.dur} hours`;
+ document.getElementById("modal").style.display="flex";
+}
 
-    function autoFillDemo() {
-      const keys = [];
-      resources.forEach(r => {
-        weekDays.forEach(d => {
-          keys.push(makeCellKey(r.id, d.key, "day"));
-          keys.push(makeCellKey(r.id, d.key, "night"));
-        });
-      });
-      let i = 0;
-      while (backlogJobs.length > 0 && i < keys.length) {
-        getCellItems(keys[i]).push(backlogJobs.shift());
-        i++;
-      }
-      render();
-    }
+function openRange(r){
+ const action=prompt("Type M to Move, D to Delete","M");
+ if(!action)return;
+ if(action.toUpperCase()==="D")deleteRange(r.id);
+ if(action.toUpperCase()==="M"){movingRange=r.id;alert("Click new day to move");}
+}
 
-    function saveChanges() {
-      const out = [];
+function handleMove(day,resId){
+ if(!movingRange)return;
+ const r=ranges.find(x=>x.id===movingRange);
+ if(!r)return;
+ r.day=day;
+ movingRange=null;
+ renderBoard();
+}
 
-      Object.keys(schedule).forEach(cellKey => {
-        const [resourceId, dayKey, shiftKey] = cellKey.split("|");
-        schedule[cellKey].forEach(it => {
-          out.push({
-            resourceId,
-            day: dayKey,
-            shift: shiftKey,
-            kind: "job",
-            jobNumber: it.jobNumber,
-            asmNumber: it.asmNumber,
-            opNumber: it.opNumber,
-            opDescription: it.opDescription,
-            partNumber: it.partNumber,
-            customerNumber: it.customerNumber,
-            partDescription: it.partDescription,
-            quantity: it.quantity,
-            durationHours: it.durationHours
-          });
-        });
-      });
+function deleteRange(id){
+ ranges=ranges.filter(r=>r.id!==id);
+ renderBoard();
+}
 
-      dayRanges.forEach(r => {
-        out.push({
-          resourceId: r.resourceId,
-          kind: r.kind,
-          startDay: r.startDayKey,
-          endDay: r.endDayKey,
-          label: r.label,
-          holidayType: r.holidayType,
-          notes: r.notes,
-          appliesTo: "both_shifts"
-        });
-      });
+function closeModal(){
+ document.getElementById("modal").style.display="none";
+}
 
-      console.log("Schedule payload:", out);
-      alert("Saved (demo). Check console for payload.");
-    }
-
-    function resetDemo() {
-      resources = structuredClone(demoResources);
-      backlogJobs = structuredClone(demoJobs);
-      schedule = {};
-      dayRanges = [];
-      shiftFilter = "both";
-      document.getElementById("shiftFilter").value = "both";
-      render();
-    }
-
-    function safeParse(s) { try { return JSON.parse(s); } catch { return null; } }
-
-    
-    function handlePhotoError(imgEl, fallbackText, altSrc) {
-      try {
-        if (!imgEl) return;
-        const tried = imgEl.dataset && imgEl.dataset.triedAlt === "1";
-        if (!tried && altSrc) {
-          imgEl.dataset.triedAlt = "1";
-          imgEl.src = altSrc;
-          return;
-        }
-        // fallback to initials
-        const parent = imgEl.parentElement;
-        imgEl.remove();
-        if (parent) parent.textContent = fallbackText || "";
-      } catch {
-        // ignore
-      }
-    }
-
-    function escapeHtml(s) {
-      return String(s ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    function initials(name) {
-      const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
-      const a = parts[0]?.[0] || "E";
-      const b = parts[1]?.[0] || "";
-      return (a + b).toUpperCase();
-    }
-
-    render();
-  </script>
+renderBoard();
+</script>
 </body>
 </html>
