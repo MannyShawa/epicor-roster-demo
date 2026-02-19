@@ -3,22 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Epicor, Weekly Resource Calendar</title>
+  <title>Epicor Weekly Resource Calendar</title>
 
   <style>
     :root{
+      /* Approved palette only */
       --dark-petrol: #002b3a;
       --petrol: #053c55;
+      --teal: #025064;
+      --light-teal: #317d9b;
+      --aqua: #90d2b5;
       --light-gray: #eef2f5;
-      --bright-blue: #008cf8;
-      --lemon: #fcdd00;
-      --grid: #d7dde3;
 
-      --bg: #f7f9fb;
+      --grid: #cfd8de;
+      --bg: var(--light-gray);
       --card: #ffffff;
-      --text: #0f172a;
-      --muted: #6b7280;
-      --shadow: 0 10px 24px rgba(17, 24, 39, 0.08);
+      --text: #000000;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
       --radius: 14px;
     }
 
@@ -32,7 +33,6 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.15);
     }
     .logo{ height: 26px; width: auto; display:block; }
     .title-wrap{ display:flex; flex-direction:column; line-height:1.15; }
@@ -50,7 +50,7 @@
 
     .card{
       background: var(--card);
-      border: 1px solid #e5e7eb;
+      border: 1px solid var(--grid);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       overflow: hidden;
@@ -58,7 +58,7 @@
 
     .card-header{
       padding: 12px 14px;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--grid);
       display:flex;
       align-items:center;
       justify-content: space-between;
@@ -67,12 +67,12 @@
     }
 
     .card-header .heading{ font-size: 13px; font-weight: 900; margin:0; }
-    .card-header .hint{ font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .card-header .hint{ font-size: 12px; margin-top: 3px; opacity: 0.75; }
 
     .controls{ display:flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
 
     .btn{
-      border: 0;
+      border: 1px solid var(--grid);
       border-radius: 10px;
       padding: 10px 12px;
       font-weight: 900;
@@ -83,20 +83,30 @@
       gap: 8px;
       user-select: none;
       white-space: nowrap;
+      background: #fff;
+      color: #000;
     }
     .btn:active{ transform: translateY(1px); }
-    .btn-primary{ background: var(--bright-blue); color: #fff; }
-    .btn-secondary{ background: var(--light-gray); color: var(--text); border: 1px solid #dde3ea; }
-    .btn-warn{ background: var(--lemon); color: #111827; }
+
+    .btn-primary{
+      background: var(--teal);
+      border-color: var(--teal);
+      color: #fff;
+    }
+    .btn-warn{
+      background: var(--aqua);
+      border-color: var(--aqua);
+      color: #000;
+    }
 
     .select{
-      border: 1px solid #dde3ea;
+      border: 1px solid var(--grid);
       background: #fff;
       border-radius: 10px;
       padding: 9px 10px;
       font-weight: 900;
       font-size: 12px;
-      color: var(--text);
+      color: #000;
       outline: none;
       cursor: pointer;
     }
@@ -109,11 +119,11 @@
       gap: 10px;
     }
     .job{
-      border: 1px solid #dde3ea;
+      border: 1px solid var(--grid);
       border-radius: 12px;
       padding: 10px 10px;
       background: #fff;
-      box-shadow: 0 10px 18px rgba(17,24,39,0.06);
+      box-shadow: 0 10px 18px rgba(0,0,0,0.06);
       cursor: grab;
     }
     .job:active{ cursor: grabbing; }
@@ -122,10 +132,10 @@
       align-items:center;
       padding: 3px 8px;
       border-radius: 999px;
-      border: 1px solid #dde3ea;
+      border: 1px solid var(--grid);
       font-size: 11px;
       background: #fff;
-      color: #0f172a;
+      color: #000;
       font-weight: 900;
     }
     .job .top{
@@ -141,7 +151,7 @@
       gap: 6px 10px;
       font-size: 12px;
     }
-    .job .grid2 .k{ color: var(--muted); font-weight: 900; }
+    .job .grid2 .k{ opacity: 0.7; font-weight: 900; }
     .job .grid2 .v{ font-weight: 900; }
 
     /* Board */
@@ -170,14 +180,14 @@
       border-bottom: 1px solid var(--grid);
       padding: 10px;
       background: #fff;
-      min-height: 72px;
+      min-height: 78px;
     }
 
     .cell.header{
       background: var(--light-gray);
       font-weight: 900;
       font-size: 12px;
-      color: #0f172a;
+      color: #000;
       min-height: unset;
       padding: 10px;
       position: sticky;
@@ -185,25 +195,25 @@
       z-index: 5;
     }
     .cell.header.weekend{
-      background: rgba(252, 221, 0, 0.22);
+      background: var(--aqua);
     }
 
     .cell.resource{
-      background: #fbfcfe;
+      background: #fff;
       position: sticky;
       left: 0;
       z-index: 4;
     }
 
     .cell.shift{
-      background: #fbfcfe;
+      background: #fff;
       position: sticky;
       left: 320px;
       z-index: 4;
       padding: 10px;
       font-weight: 900;
       font-size: 12px;
-      color: rgba(15, 23, 42, 0.78);
+      opacity: 0.85;
     }
 
     .corner{
@@ -231,7 +241,7 @@
       width: 42px;
       height: 42px;
       border-radius: 12px;
-      border: 1px solid #dde3ea;
+      border: 1px solid var(--grid);
       background: #fff;
       overflow: hidden;
       display:flex;
@@ -244,7 +254,7 @@
     .avatar img{ width:100%; height:100%; object-fit: cover; display:block; }
 
     .rname{ font-weight: 900; font-size: 12px; }
-    .rsub{ font-weight: 800; color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .rsub{ font-weight: 900; font-size: 11px; opacity: 0.7; margin-top: 2px; }
 
     .daycell{
       display:flex;
@@ -258,15 +268,16 @@
       justify-content:flex-end;
       align-items:center;
       gap: 8px;
+      height: 22px;
     }
 
     .plus-btn{
       width: 22px;
       height: 22px;
       border-radius: 7px;
-      border: 1px solid rgba(0, 140, 248, 0.30);
-      background: rgba(0, 140, 248, 0.08);
-      color: #0f172a;
+      border: 1px solid var(--teal);
+      background: rgba(2,80,100,0.10);
+      color: #000;
       font-weight: 900;
       font-size: 16px;
       line-height: 18px;
@@ -281,8 +292,8 @@
       flex: 1 1 auto;
       min-height: 44px;
       padding: 6px;
-      border: 1px dashed rgba(0, 140, 248, 0.28);
-      background: rgba(0, 140, 248, 0.02);
+      border: 1px dashed rgba(2,80,100,0.35);
+      background: rgba(49,125,155,0.06);
       border-radius: 10px;
       display:flex;
       flex-direction: column;
@@ -290,27 +301,27 @@
       transition: background 120ms ease, border-color 120ms ease;
     }
     .dropzone.weekend{
-      background: rgba(252, 221, 0, 0.08);
-      border-color: rgba(5, 60, 85, 0.20);
+      background: rgba(144,210,181,0.18);
+      border-color: rgba(2,80,100,0.30);
     }
     .dropzone.over{
-      background: rgba(0, 140, 248, 0.06);
-      border-color: rgba(0, 140, 248, 0.55);
+      background: rgba(49,125,155,0.14);
+      border-color: rgba(2,80,100,0.55);
     }
 
     /* One line calendar item */
     .mini{
       border-radius: 10px;
       padding: 6px 8px;
-      border: 1px solid rgba(5, 60, 85, 0.18);
-      background: rgba(49, 125, 155, 0.12);
+      border: 1px solid rgba(0,43,58,0.20);
+      background: rgba(49,125,155,0.18);
       cursor: grab;
       display:flex;
       align-items:center;
       justify-content: space-between;
       gap: 10px;
       position: relative;
-      min-height: 30px;
+      min-height: 32px;
     }
     .mini:active{ cursor: grabbing; }
 
@@ -326,75 +337,62 @@
     .mini .pill{
       font-size: 10.5px;
       font-weight: 900;
-      border: 1px solid rgba(15, 23, 42, 0.12);
+      border: 1px solid rgba(0,43,58,0.20);
       border-radius: 999px;
       padding: 2px 6px;
-      background: rgba(255,255,255,0.65);
+      background: #fff;
       flex: 0 0 auto;
+      color: #000;
     }
 
     .mini.holiday{
-      border-color: rgba(5, 60, 85, 0.20);
-      background: rgba(252, 221, 0, 0.28);
+      border-color: rgba(0,43,58,0.20);
+      background: rgba(144,210,181,0.55);
+      cursor: grab;
     }
     .mini.leave{
-      border-color: rgba(160, 13, 28, 0.22);
-      background: rgba(252, 221, 0, 0.18);
+      border-color: rgba(0,43,58,0.20);
+      background: rgba(252,221,0,0.0); /* not allowed, so do NOT use */
+    }
+    /* Use approved colors for leave too, give it teal tint */
+    .mini.leave{
+      background: rgba(2,80,100,0.18);
     }
 
-    .dots{
-      position:absolute;
-      top: 6px;
-      right: 6px;
-      width: 18px;
-      height: 18px;
-      border-radius: 7px;
-      border: 1px solid rgba(15, 23, 42, 0.12);
-      background: rgba(255,255,255,0.65);
-      font-weight: 900;
-      font-size: 12px;
+    /* Leave actions */
+    .icon-btn{
+      border: 1px solid rgba(0,43,58,0.20);
+      background: #fff;
+      width: 22px;
+      height: 22px;
+      border-radius: 8px;
       cursor: pointer;
       display:flex;
       align-items:center;
       justify-content:center;
-      user-select: none;
-    }
-    .menu{
-      position:absolute;
-      top: 26px;
-      right: 6px;
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-      border-radius: 10px;
-      overflow: hidden;
-      display:none;
-      z-index: 10;
-      min-width: 140px;
-    }
-    .menu.show{ display:block; }
-    .menu button{
-      width: 100%;
-      border: 0;
-      background: #fff;
-      padding: 10px 10px;
-      cursor: pointer;
-      text-align: left;
-      font-weight: 900;
       font-size: 12px;
+      user-select:none;
+      flex: 0 0 auto;
     }
-    .menu button:hover{ background: var(--light-gray); }
-    .menu .danger{ color: #b91c1c; }
+
+    /* Resize handle on right edge */
+    .resize-handle{
+      width: 10px;
+      height: 22px;
+      border-radius: 7px;
+      border: 1px solid rgba(0,43,58,0.20);
+      background: rgba(238,242,245,0.9);
+      cursor: ew-resize;
+      flex: 0 0 auto;
+    }
 
     .footer-note{
       padding: 10px 14px;
-      border-top: 1px solid #e5e7eb;
+      border-top: 1px solid var(--grid);
       font-size: 12px;
-      color: var(--muted);
+      opacity: 0.75;
       background: #fff;
     }
-
-    .hide{ display:none !important; }
 
     /* Modals */
     .modal-overlay{
@@ -412,31 +410,31 @@
       max-width: 100%;
       background: #fff;
       border-radius: 16px;
-      border: 1px solid #e5e7eb;
+      border: 1px solid var(--grid);
       box-shadow: 0 20px 60px rgba(0,0,0,0.22);
       overflow: hidden;
     }
     .modal-header{
       padding: 12px 14px;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--grid);
       display:flex;
       align-items:center;
       justify-content: space-between;
       gap: 12px;
       background: var(--light-gray);
     }
-    .modal-title{ font-weight: 900; font-size: 13px; margin: 0; }
-    .modal-body{ padding: 14px; display:flex; flex-direction: column; gap: 10px; font-size: 12px; }
+    .modal-title{ font-weight: 900; font-size: 13px; margin: 0; color:#000; }
+    .modal-body{ padding: 14px; display:flex; flex-direction: column; gap: 10px; font-size: 12px; color:#000; }
     .modal-actions{
       padding: 12px 14px;
-      border-top: 1px solid #e5e7eb;
+      border-top: 1px solid var(--grid);
       display:flex;
       justify-content: flex-end;
       gap: 8px;
       background: #fff;
     }
     .kv{ display:grid; grid-template-columns: 220px 1fr; gap: 8px 10px; align-items: start; }
-    .k{ color: var(--muted); font-weight: 900; }
+    .k{ opacity: 0.7; font-weight: 900; }
     .v{ font-weight: 900; }
 
     .form-grid{
@@ -449,13 +447,15 @@
       width: 100%;
       padding: 10px 10px;
       border-radius: 10px;
-      border: 1px solid #dbe3ea;
+      border: 1px solid var(--grid);
       font-weight: 800;
       font-size: 12px;
       outline: none;
+      color:#000;
+      background:#fff;
     }
     .textarea{ min-height: 70px; resize: vertical; }
-    .muted{ color: var(--muted); font-weight: 800; font-size: 12px; }
+    .muted{ opacity: 0.75; font-weight: 800; font-size: 12px; }
 
     @media (max-width: 1100px){
       .layout{ grid-template-columns: 1fr; }
@@ -469,7 +469,7 @@
     <img class="logo" src="assets/epicor-logo.svg" alt="Epicor" onerror="this.style.display='none'"/>
     <div class="title-wrap">
       <h1>Weekly Resource Calendar</h1>
-      <div class="subtitle">Cleaner grid, Resource plus Shift column, jobs are one line</div>
+      <div class="subtitle">Leave label optional, move without duplicate, resize by mouse, delete button</div>
     </div>
   </div>
 
@@ -483,7 +483,7 @@
             <div class="hint">Drag a job onto a resource and day, shift is row based</div>
           </div>
           <div class="controls">
-            <button class="btn btn-secondary" onclick="resetDemo()">Reset</button>
+            <button class="btn" onclick="resetDemo()">Reset</button>
             <button class="btn btn-warn" onclick="autoFillDemo()">Auto Fill</button>
           </div>
         </div>
@@ -503,7 +503,7 @@
             <div class="hint">Shift filter controls row visibility</div>
           </div>
           <div class="controls">
-            <label style="font-size:12px; font-weight:900; color:#111827;">Shift Filter</label>
+            <label style="font-size:12px; font-weight:900; color:#000;">Shift Filter</label>
             <select id="shiftFilter" class="select" onchange="setShiftFilter(this.value)">
               <option value="both">Day and Night</option>
               <option value="day">Day only</option>
@@ -518,7 +518,7 @@
         </div>
 
         <div class="footer-note">
-          Leave and holiday are whole day (both shifts), drag to extend, Shift-drag to move range, leave can be deleted.
+          Leave, drag to move. Resize with the small handle. Delete with the trash icon.
         </div>
       </div>
     </div>
@@ -529,11 +529,11 @@
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modal-header">
         <div class="modal-title" id="detailsTitle">Details</div>
-        <button class="btn btn-secondary" onclick="closeOverlay('detailsOverlay')">Close</button>
+        <button class="btn" onclick="closeOverlay('detailsOverlay')">Close</button>
       </div>
       <div class="modal-body" id="detailsBody"></div>
       <div class="modal-actions">
-        <button class="btn btn-secondary" onclick="closeOverlay('detailsOverlay')">Done</button>
+        <button class="btn" onclick="closeOverlay('detailsOverlay')">Done</button>
       </div>
     </div>
   </div>
@@ -543,7 +543,7 @@
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modal-header">
         <div class="modal-title" id="addTitle">Add</div>
-        <button class="btn btn-secondary" onclick="closeOverlay('addOverlay')">Close</button>
+        <button class="btn" onclick="closeOverlay('addOverlay')">Close</button>
       </div>
 
       <div class="modal-body">
@@ -565,7 +565,7 @@
           </select>
 
           <div class="k">Label</div>
-          <input class="input" id="addLabel" placeholder="Label, e.g. Labour Day, Annual Leave" />
+          <input class="input" id="addLabel" placeholder="Optional for leave, required for holiday" />
 
           <div class="k">Apply to</div>
           <div class="muted">Whole day (Day and Night)</div>
@@ -576,7 +576,7 @@
       </div>
 
       <div class="modal-actions">
-        <button class="btn btn-secondary" onclick="closeOverlay('addOverlay')">Cancel</button>
+        <button class="btn" onclick="closeOverlay('addOverlay')">Cancel</button>
         <button class="btn btn-primary" onclick="submitAdd()">Add</button>
       </div>
     </div>
@@ -613,12 +613,15 @@
     // cellKey: resourceId|YYYY-MM-DD|shiftKey
     let schedule = {};
 
-    // ranges apply to whole day (both shifts), shown in BOTH shift rows
+    // ranges apply to whole day (both shifts), but we DISPLAY them only on Day row to avoid duplication look
     // { id, kind: 'holiday'|'leave', resourceId, startDayKey, endDayKey, label, holidayType?, notes? }
     let dayRanges = [];
 
     let shiftFilter = "both";
-    let addCtx = null; // { resource, day }
+    let addCtx = null;
+
+    // resize state
+    let resizeState = null; // { rangeId, resourceId, anchorDayKey, startDayKey, endDayKey }
 
     function getWeekMonToSun() {
       const now = new Date();
@@ -661,21 +664,6 @@
       return dayRanges.filter(r => r.resourceId === resourceId && inRange(dayKey, r.startDayKey, r.endDayKey));
     }
 
-    function extendRange(rangeId, targetDayKey) {
-      const r = dayRanges.find(x => x.id === rangeId);
-      if (!r) return;
-      r.startDayKey = (targetDayKey < r.startDayKey) ? targetDayKey : r.startDayKey;
-      r.endDayKey = (targetDayKey > r.endDayKey) ? targetDayKey : r.endDayKey;
-    }
-
-    function moveRangeToDay(rangeId, targetDayKey) {
-      const r = dayRanges.find(x => x.id === rangeId);
-      if (!r) return;
-      const span = daySpan(r.startDayKey, r.endDayKey);
-      r.startDayKey = targetDayKey;
-      r.endDayKey = addDaysIso(targetDayKey, span);
-    }
-
     function daySpan(startKey, endKey) {
       const a = new Date(startKey + "T00:00:00");
       const b = new Date(endKey + "T00:00:00");
@@ -686,6 +674,14 @@
       const d = new Date(dayKey + "T00:00:00");
       d.setDate(d.getDate() + plusDays);
       return d.toISOString().slice(0,10);
+    }
+
+    function clampToWeek(dayKey) {
+      const min = weekDays[0].key;
+      const max = weekDays[6].key;
+      if (dayKey < min) return min;
+      if (dayKey > max) return max;
+      return dayKey;
     }
 
     function render() {
@@ -699,7 +695,7 @@
       backlogJobs.forEach(job => el.appendChild(renderBacklogCard(job)));
       if (backlogJobs.length === 0) {
         const empty = document.createElement("div");
-        empty.style.color = "#6b7280";
+        empty.style.opacity = "0.75";
         empty.style.fontSize = "12px";
         empty.textContent = "Backlog empty, all jobs are scheduled.";
         el.appendChild(empty);
@@ -731,18 +727,16 @@
         grid.appendChild(h);
       });
 
-      // each resource renders two rows: Day then Night
       resources.forEach(r => {
         SHIFTS.forEach((s, sIdx) => {
           if (shiftFilter === "day" && s.key === "night") return;
           if (shiftFilter === "night" && s.key === "day") return;
 
-          // resource cell only on the first shift row (rowspan look)
-          if (sIdx === 0) {
+          // Resource cell, placed once for the first visible shift row
+          if ((shiftFilter === "both" && sIdx === 0) || (shiftFilter !== "both" && s.key === shiftFilter)) {
             const rc = document.createElement("div");
             rc.className = "cell resource";
-            rc.style.gridRow = "span 2"; // will still be ok even if we hide one shift, not perfect but acceptable in demo
-            if (shiftFilter !== "both") rc.style.gridRow = "span 1";
+            rc.style.gridRow = (shiftFilter === "both") ? "span 2" : "span 1";
 
             const av = document.createElement("div");
             av.className = "avatar";
@@ -772,7 +766,7 @@
           sc.textContent = s.label;
           grid.appendChild(sc);
 
-          // day cells for that shift row
+          // day cells
           weekDays.forEach(d => {
             const c = document.createElement("div");
             c.className = "cell";
@@ -783,7 +777,7 @@
             const top = document.createElement("div");
             top.className = "daycell-top";
 
-            // only show plus on day shift row, so you don't get two plus buttons
+            // show plus on Day row only
             if (s.key === "day") {
               const plus = document.createElement("button");
               plus.className = "plus-btn";
@@ -795,7 +789,6 @@
             }
             wrap.appendChild(top);
 
-            // dropzone
             const dz = document.createElement("div");
             dz.className = `dropzone${d.isWeekend ? " weekend" : ""}`;
             dz.dataset.resourceId = r.id;
@@ -814,11 +807,13 @@
               handleDrop(payload, targetCellKey, r.id, d.key);
             });
 
-            // show ranges in BOTH shift rows
-            const rs = rangesFor(r.id, d.key);
-            rs.forEach(range => dz.appendChild(renderRangeMini(range, r, d)));
+            // IMPORTANT: show leave/holiday only on DAY row to avoid duplication look
+            if (s.key === "day") {
+              const rs = rangesFor(r.id, d.key);
+              rs.forEach(range => dz.appendChild(renderRangeMini(range, r, d)));
+            }
 
-            // show jobs in this shift row
+            // jobs for this shift
             const cellKey = makeCellKey(r.id, d.key, s.key);
             const items = getCellItems(cellKey);
             items.forEach((it, idx) => dz.appendChild(renderJobMini(it, cellKey, idx, r, d, s)));
@@ -863,7 +858,6 @@
       return card;
     }
 
-    // One line only in calendar
     function renderJobMini(item, cellKey, indexInCell, resource, day, shift) {
       const card = document.createElement("div");
       card.className = "mini";
@@ -898,12 +892,13 @@
       card.className = `mini ${isLeave ? "leave" : "holiday"}`;
       card.draggable = true;
 
+      // Drag move range (no duplicate, it is a single range object)
       card.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", JSON.stringify({
           type: "range",
           rangeId: range.id,
           resourceId: range.resourceId,
-          moveMode: e.shiftKey ? "move" : "extend"
+          mode: "move"
         }));
         e.dataTransfer.effectAllowed = "move";
       });
@@ -916,48 +911,47 @@
         );
       };
 
-      if (isLeave) {
-        const dots = document.createElement("div");
-        dots.className = "dots";
-        dots.textContent = "⋯";
-        dots.onclick = (ev) => {
-          ev.stopPropagation();
-          toggleMenu(card);
-        };
-        card.appendChild(dots);
+      const tag = (range.kind === "holiday") ? "HOL" : "LEAVE";
+      const label = (range.label && range.label.trim()) ? range.label.trim() : (range.kind === "leave" ? "Leave" : "Holiday");
 
-        const menu = document.createElement("div");
-        menu.className = "menu";
-        menu.innerHTML = `<button class="danger">Delete leave</button>`;
-        menu.querySelector("button").onclick = (ev) => {
+      const line = document.createElement("div");
+      line.className = "line";
+      line.textContent = `${tag} , ${label}`;
+
+      const pill = document.createElement("div");
+      pill.className = "pill";
+      pill.textContent = (range.startDayKey === range.endDayKey) ? "1d" : "rng";
+
+      card.appendChild(line);
+
+      // Leave: delete button + resize handle
+      if (isLeave) {
+        const del = document.createElement("button");
+        del.className = "icon-btn";
+        del.type = "button";
+        del.title = "Delete leave";
+        del.textContent = "🗑";
+        del.onclick = (ev) => {
           ev.stopPropagation();
           deleteRange(range.id);
-          closeAllMenus();
         };
-        card.appendChild(menu);
+        card.appendChild(del);
+
+        const handle = document.createElement("div");
+        handle.className = "resize-handle";
+        handle.title = "Drag to stretch leave";
+        handle.addEventListener("mousedown", (ev) => {
+          ev.stopPropagation();
+          startResize(range.id, range.resourceId);
+        });
+        card.appendChild(handle);
       }
 
-      const tag = (range.kind === "holiday") ? "HOL" : "LEAVE";
-      card.innerHTML += `
-        <div class="line">${escapeHtml(tag)} , ${escapeHtml(range.label)}</div>
-        <div class="pill">${escapeHtml(range.startDayKey === range.endDayKey ? "1d" : "rng")}</div>
-      `;
+      card.appendChild(pill);
+
       return card;
     }
 
-    function toggleMenu(card) {
-      closeAllMenus(card);
-      const menu = card.querySelector(".menu");
-      if (!menu) return;
-      menu.classList.toggle("show");
-      document.addEventListener("click", closeAllMenus, { once: true });
-    }
-    function closeAllMenus(exceptCard) {
-      document.querySelectorAll(".menu.show").forEach(m => {
-        if (exceptCard && exceptCard.contains(m)) return;
-        m.classList.remove("show");
-      });
-    }
     function deleteRange(rangeId) {
       dayRanges = dayRanges.filter(r => r.id !== rangeId);
       renderBoard();
@@ -966,16 +960,27 @@
     function handleDrop(payload, targetCellKey, targetResourceId, targetDayKey) {
       if (!payload) return;
 
+      // Move range (leave or holiday)
       if (payload.type === "range") {
         if (payload.resourceId !== targetResourceId) return;
 
-        if (payload.moveMode === "move") moveRangeToDay(payload.rangeId, targetDayKey);
-        else extendRange(payload.rangeId, targetDayKey);
+        const r = dayRanges.find(x => x.id === payload.rangeId);
+        if (!r) return;
+
+        // MOVE: keep span, set start to target day
+        const span = daySpan(r.startDayKey, r.endDayKey);
+        r.startDayKey = targetDayKey;
+        r.endDayKey = addDaysIso(targetDayKey, span);
+
+        // clamp
+        r.startDayKey = clampToWeek(r.startDayKey);
+        r.endDayKey = clampToWeek(r.endDayKey);
 
         renderBoard();
         return;
       }
 
+      // Jobs
       if (payload.type !== "job") return;
 
       if (payload.from === "backlog") {
@@ -1008,6 +1013,63 @@
       }
     }
 
+    // Mouse resize leave by dragging handle, snap to day columns
+    function startResize(rangeId, resourceId) {
+      const r = dayRanges.find(x => x.id === rangeId);
+      if (!r) return;
+
+      resizeState = {
+        rangeId,
+        resourceId,
+        startDayKey: r.startDayKey,
+        endDayKey: r.endDayKey
+      };
+
+      document.addEventListener("mousemove", onResizeMove);
+      document.addEventListener("mouseup", onResizeEnd, { once: true });
+    }
+
+    function onResizeMove(ev) {
+      if (!resizeState) return;
+
+      // Find element under mouse that has a dayKey for this resource Day shift dropzone
+      const el = document.elementFromPoint(ev.clientX, ev.clientY);
+      if (!el) return;
+
+      const dz = el.closest ? el.closest(".dropzone") : null;
+      if (!dz) return;
+
+      const resourceId = dz.dataset.resourceId;
+      const shiftKey = dz.dataset.shiftKey;
+      const dayKey = dz.dataset.dayKey;
+
+      // resize only based on Day shift row so it is consistent
+      if (resourceId !== resizeState.resourceId) return;
+      if (shiftKey !== "day") return;
+
+      const r = dayRanges.find(x => x.id === resizeState.rangeId);
+      if (!r) return;
+
+      const target = clampToWeek(dayKey);
+
+      // set end to target, allow shrinking
+      if (target >= r.startDayKey) {
+        r.endDayKey = target;
+      } else {
+        // if dragged left of start, swap
+        r.endDayKey = r.startDayKey;
+        r.startDayKey = target;
+      }
+
+      renderBoard();
+    }
+
+    function onResizeEnd() {
+      document.removeEventListener("mousemove", onResizeMove);
+      resizeState = null;
+      renderBoard();
+    }
+
     // Add modal
     function openAddForm(resource, day) {
       addCtx = { resource, day };
@@ -1036,13 +1098,16 @@
 
       const type = document.getElementById("addType").value;
       const hType = document.getElementById("holidayType").value;
-      const label = document.getElementById("addLabel").value.trim();
+      const labelRaw = document.getElementById("addLabel").value.trim();
       const notes = document.getElementById("addNotes").value.trim();
 
-      if (!label) {
-        alert("Please enter a label.");
+      // Holiday label required, Leave label optional
+      if (type === "holiday" && !labelRaw) {
+        alert("Holiday label is required.");
         return;
       }
+
+      const finalLabel = labelRaw || (type === "leave" ? "Leave" : "Holiday");
 
       dayRanges.push({
         id: `R-${Date.now()}-${Math.floor(Math.random()*1000)}`,
@@ -1050,7 +1115,7 @@
         resourceId: addCtx.resource.id,
         startDayKey: addCtx.day.key,
         endDayKey: addCtx.day.key,
-        label,
+        label: finalLabel,
         holidayType: (type === "holiday" ? hType : null),
         notes: notes || ""
       });
