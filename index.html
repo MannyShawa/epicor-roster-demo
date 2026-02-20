@@ -184,6 +184,7 @@
       gap:10px;
     }
     .job-card{
+      position:relative;
       border:1px solid var(--grid);
       border-left:8px solid var(--accent, var(--teal));
       border-radius:14px;
@@ -239,6 +240,33 @@
     }
     .k{ opacity:0.7; font-weight:900; }
     .v{ font-weight:900; }
+
+
+    .priority-stamp{
+      position:absolute;
+      top:10px;
+      right:10px;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:0.6px;
+      transform:rotate(8deg);
+      opacity:0.92;
+      border:2px solid rgba(0,0,0,0.08);
+      box-shadow:0 8px 18px rgba(0,0,0,0.10);
+      user-select:none;
+      pointer-events:none;
+      color:#fff;
+      background:var(--holiday);
+    }
+    .pri-VHIGH{ background: var(--holiday); color:#fff; }
+    .pri-IMMED{ background: var(--holiday); color:#fff; }
+    .pri-HIGH{ background: var(--holiday); color:#fff; }
+    .pri-NORMAL{ background: var(--petrol); color:#fff; }
+    .pri-LOW{ background: var(--light-teal); color:#fff; }
+    .pri-VLOW{ background: var(--aqua); color:#000; }
+
 
     /* Board */
     .board-wrap{
@@ -640,9 +668,9 @@
 
             <label style="font-size:12px;font-weight:900;color:#000;">Shift</label>
             <select id="shiftFilter" class="select" onchange="setShiftFilter(this.value)">
-              <option value="both">Day and Night</option>
-              <option value="day">Day only</option>
-              <option value="night">Night only</option>
+              <option value="both">First and Second</option>
+              <option value="first">First only</option>
+              <option value="second">Second only</option>
             </select>
 
             <label style="font-size:12px;font-weight:900;color:#000;">Department</label>
@@ -735,7 +763,7 @@
   </div>
 
   <script>
-    const APP_VERSION = "v2.4.4";
+    const APP_VERSION = "v2.4.5";
 
     // Images: prefer assets/Employees, fallback assets/employees, then initials
     const PHOTO_BASE_PRIMARY = "assets/Employees";
@@ -749,18 +777,20 @@
     ];
 
     const demoJobs = [
-      { kind: "job", id: "JB-1", jobNumber: "J-10021", asmNumber: "10", opNumber: "020", opDescription: "Wiring", partNumber: "PN-AX12", customerNumber: "CUST-1000", partDescription: "Switchboard enclosure", quantity: 2, durationHours: 6 },
-      { kind: "job", id: "JB-2", jobNumber: "J-10034", asmNumber: "10", opNumber: "030", opDescription: "Terminate", partNumber: "PN-WR08", customerNumber: "CUST-1042", partDescription: "Panel wiring kit", quantity: 4, durationHours: 4 },
-      { kind: "job", id: "JB-3", jobNumber: "J-10040", asmNumber: "20", opNumber: "010", opDescription: "FAT", partNumber: "PN-FAT01", customerNumber: "CUST-1000", partDescription: "Factory acceptance test", quantity: 1, durationHours: 3 },
-      { kind: "job", id: "JB-4", jobNumber: "J-10055", asmNumber: "05", opNumber: "010", opDescription: "Cut Drill", partNumber: "PN-SM22", customerNumber: "CUST-1108", partDescription: "Sheet metal set", quantity: 6, durationHours: 5 },
-      { kind: "job", id: "JB-5", jobNumber: "J-10080", asmNumber: "30", opNumber: "015", opDescription: "Prep", partNumber: "PN-PC09", customerNumber: "CUST-1205", partDescription: "Powder coat prep batch", quantity: 3, durationHours: 4 },
-      { kind: "job", id: "JB-6", jobNumber: "J-10110", asmNumber: "40", opNumber: "005", opDescription: "Pack", partNumber: "PN-PK02", customerNumber: "CUST-1310", partDescription: "Packaging and labels", quantity: 10, durationHours: 2 }
+      { kind: "job", id: "JB-1", priority: "HIGH", jobNumber: "J-10021", asmNumber: "10", opNumber: "020", opDescription: "Wiring", partNumber: "PN-AX12", customerNumber: "CUST-1000", partDescription: "Switchboard enclosure", quantity: 2, durationHours: 6 },
+      { kind: "job", id: "JB-2", priority: "NORMAL", jobNumber: "J-10034", asmNumber: "10", opNumber: "030", opDescription: "Terminate", partNumber: "PN-WR08", customerNumber: "CUST-1042", partDescription: "Panel wiring kit", quantity: 4, durationHours: 4 },
+      { kind: "job", id: "JB-3", priority: "IMMED", jobNumber: "J-10040", asmNumber: "20", opNumber: "010", opDescription: "FAT", partNumber: "PN-FAT01", customerNumber: "CUST-1000", partDescription: "Factory acceptance test", quantity: 1, durationHours: 3 },
+      { kind: "job", id: "JB-4", priority: "LOW", jobNumber: "J-10055", asmNumber: "05", opNumber: "010", opDescription: "Cut Drill", partNumber: "PN-SM22", customerNumber: "CUST-1108", partDescription: "Sheet metal set", quantity: 6, durationHours: 5 },
+      { kind: "job", id: "JB-5", priority: "VHIGH", jobNumber: "J-10080", asmNumber: "30", opNumber: "015", opDescription: "Prep", partNumber: "PN-PC09", customerNumber: "CUST-1205", partDescription: "Powder coat prep batch", quantity: 3, durationHours: 4 },
+      { kind: "job", id: "JB-6", priority: "VLOW", jobNumber: "J-10110", asmNumber: "40", opNumber: "005", opDescription: "Pack", partNumber: "PN-PK02", customerNumber: "CUST-1310", partDescription: "Packaging and labels", quantity: 10, durationHours: 2 }
     ];
 
     const SHIFTS = [
-      { key: "day", label: "Day" },
-      { key: "night", label: "Night" }
+      { key: "first", label: "First" },
+      { key: "second", label: "Second" }
     ];
+
+    const SHIFT_HOURS = 8;
 
     // State
     let resources = structuredClone(demoResources);
@@ -783,6 +813,14 @@
     let deptFilter = "all";
     let addCtx = null;
 
+    // Backward compatibility, convert older shift keys if any exist in localStorage payloads or demo arrays
+    function normalizeShiftKey(k){
+      if (k === "day") return "first";
+      if (k === "night") return "second";
+      return k;
+    }
+
+
     // Calendar navigation
     let anchorDate = new Date();
     anchorDate.setHours(0,0,0,0);
@@ -791,7 +829,7 @@
 
     // Resize state
     let resizeState = null; // { rangeId, resourceId, weekDays }
-    let rangesRenderShift = "day"; // shift where ranges are rendered (depends on filter)
+    let rangesRenderShift = "first"; // shift where ranges are rendered (depends on filter)
 
     function init() {
       document.getElementById("versionLabel").textContent = APP_VERSION;
@@ -866,7 +904,7 @@
 
     function setShiftFilter(val) {
       shiftFilter = val;
-      rangesRenderShift = (shiftFilter === "night") ? "night" : "day";
+      rangesRenderShift = (shiftFilter === "second") ? "second" : "first";
       renderBoard();
     }
 
@@ -1022,9 +1060,12 @@
       card.onclick = () => openJobDetails(job);
 
       card.innerHTML = `
+        <div class="priority-stamp pri-${escapeHtml(job.priority || "NORMAL")}">${escapeHtml(job.priority || "NORMAL")}</div>
+
         <div class="job-top">
           <div class="job-title">${escapeHtml(job.jobNumber)} , ${escapeHtml(job.partNumber)}</div>
           <div style="display:flex; gap:6px; align-items:center;">
+            <div class="pill">${escapeHtml(job.customerNumber)}</div>
             <div class="pill">${escapeHtml(job.durationHours)}h</div>
             <div class="pill">Avail ${escapeHtml(available)}</div>
             <button class="icon-btn" type="button" title="Duplicate job in backlog">+</button>
@@ -1035,11 +1076,11 @@
 
         <div class="job-meta">
           <div class="k">Asm , Op</div><div class="v">${escapeHtml(job.asmNumber)} , ${escapeHtml(job.opNumber)} ${escapeHtml(job.opDescription)}</div>
-          <div class="k">Customer</div><div class="v">${escapeHtml(job.customerNumber)}</div>
           <div class="k">Qty</div><div class="v">${escapeHtml(job.quantity)}</div>
           <div class="k">Assigned</div><div class="v">${escapeHtml(assignedCount)}</div>
         </div>
       `;
+`;
 
       // Duplicate button
       const dupBtn = card.querySelector(".icon-btn");
@@ -1054,8 +1095,8 @@
 
     function visibleShifts() {
 
-      if (shiftFilter === "day") return [SHIFTS[0]];
-      if (shiftFilter === "night") return [SHIFTS[1]];
+      if (shiftFilter === "first") return [SHIFTS[0]];
+      if (shiftFilter === "second") return [SHIFTS[1]];
       return SHIFTS;
     }
 
@@ -1136,7 +1177,7 @@
 
           const sc = document.createElement("div");
           sc.className = "cell shift";
-          sc.textContent = s.label;
+          sc.textContent = s.label + " Shift";
           grid.appendChild(sc);
 
           weekDays.forEach(d => {
@@ -1570,7 +1611,7 @@ jobInventory[jobId] = available - 1;
         const r = resources.find(x => x.id === assignment.resourceId);
         rows.push(["Resource", r ? `${r.name} (${r.id})` : assignment.resourceId]);
         rows.push(["Date", assignment.dayKey]);
-        rows.push(["Shift", assignment.shiftKey === "day" ? "Day" : "Night"]);
+        rows.push(["Shift", assignment.shiftKey === "first" ? "First Shift (8h)" : "Second Shift (8h)"]);
       }
 
       rows.push(["Job Number", job.jobNumber]);
@@ -1693,7 +1734,7 @@ jobInventory[jobId] = available - 1;
       deptFilter = "all";
       document.getElementById("shiftFilter").value = "both";
       document.getElementById("deptFilter").value = "all";
-      rangesRenderShift = "day";
+      rangesRenderShift = "first";
       anchorDate = new Date();
       anchorDate.setHours(0,0,0,0);
       init();
