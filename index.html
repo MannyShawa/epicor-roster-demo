@@ -84,14 +84,14 @@
     }
 
     .container{
-      max-width:1900px;
-      margin:16px auto;
-      padding:0 16px 22px;
+      max-width:100%;
+      margin:0;
+      padding:12px;
     }
 
     .layout{
       display:grid;
-      grid-template-columns:420px 1fr;
+      grid-template-columns:360px 1fr;
       gap:12px;
       align-items:start;
     }
@@ -152,6 +152,17 @@
       background:var(--teal);
       border-color:var(--teal);
       color:#fff;
+    }
+
+    .btn-nav{
+      background:var(--petrol);
+      border-color:var(--petrol);
+      color:#fff;
+    }
+    .btn-today{
+      background:var(--aqua);
+      border-color:var(--aqua);
+      color:#000;
     }
 
     .select{
@@ -232,13 +243,14 @@
     /* Board */
     .board-wrap{
       padding:10px 12px 14px;
-      overflow:auto;
+      overflow-x:hidden;
+      overflow-y:auto;
       background:#fff;
       position:relative;
     }
 
     .excel{
-      min-width:1500px;
+      min-width:0;
       border:1px solid var(--grid);
       border-radius:12px;
       overflow:hidden;
@@ -282,7 +294,7 @@
 
     .cell.shift{
       position:sticky;
-      left:330px;
+      left:280px;
       z-index:4;
       background:#fff;
       font-weight:900;
@@ -301,7 +313,7 @@
     .corner-shift{
       position:sticky;
       top:0;
-      left:330px;
+      left:280px;
       z-index:7;
       background:var(--light-gray);
     }
@@ -566,7 +578,7 @@
 
     @media (max-width: 1100px){
       .layout{ grid-template-columns:1fr; }
-      .excel{ min-width:1200px; }
+      .excel{ min-width:0; }
     }
   </style>
 </head>
@@ -574,7 +586,7 @@
 <body>
   <div class="topbar">
     <div class="topbar-left">
-      <img class="logo" src="assets/epicor-logo.svg" alt="Epicor" onerror="this.style.display='none'">
+      <img class="logo" src="epicor.png" alt="Epicor" onerror="this.onerror=null;this.src='assets/epicor.png';">
       <div class="title-wrap">
         <h1>Epicor Weekly Resource Planner</h1>
         <div class="subtitle">Drag jobs, move and delete leave and holidays, stretch leave live</div>
@@ -615,9 +627,9 @@
 
           <div class="controls">
             <div class="datebar">
-              <button class="btn" onclick="navPrev()">Prev</button>
-              <button class="btn" onclick="navToday()">Today</button>
-              <button class="btn" onclick="navNext()">Next</button>
+              <button class="btn btn-nav" onclick="navPrev()">Prev</button>
+              <button class="btn btn-today" onclick="navToday()">Today</button>
+              <button class="btn btn-nav" onclick="navNext()">Next</button>
               <span class="date-range" id="rangeLabel"></span>
               <select id="viewMode" class="select" onchange="setViewMode(this.value)">
                 <option value="week" selected>Week</option>
@@ -723,7 +735,7 @@
   </div>
 
   <script>
-    const APP_VERSION = "v2.4.3";
+    const APP_VERSION = "v2.4.4";
 
     // Images: prefer assets/Employees, fallback assets/employees, then initials
     const PHOTO_BASE_PRIMARY = "assets/Employees";
