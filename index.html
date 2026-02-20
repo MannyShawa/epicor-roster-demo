@@ -1136,6 +1136,7 @@
             dz.addEventListener("drop", (e) => {
               // keep local drop for convenience, global drop also exists
               e.preventDefault();
+              e.stopPropagation();
               dz.classList.remove("over");
               const payload = safeParse(e.dataTransfer.getData("text/plain"));
               if (!payload) return;
